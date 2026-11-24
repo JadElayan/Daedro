@@ -42,7 +42,7 @@ def load(path: str | Path) -> tuple[ControllerConfig | PluginSpec, Suite]:
     allowed = {f.name for f in fields(ControllerConfig)}
     ctrl_raw = dict(raw.get("controller", {}))
     if "module" in ctrl_raw:  # bring-your-own controller
-        extra = set(ctrl_raw) - {"module", "class", "params", "grip_force_n", "episode_s"}
+        extra = set(ctrl_raw) - {"module", "class", "params", "grip_force_n", "episode_s", "cameras", "camera_hz", "image_size"}
         if extra:
             raise ValueError(f"{path}: unknown [controller] keys {sorted(extra)} for a custom module")
         if "class" not in ctrl_raw:
@@ -50,7 +50,8 @@ def load(path: str | Path) -> tuple[ControllerConfig | PluginSpec, Suite]:
         gf = ctrl_raw.get("grip_force_n", 70.0)
         ctrl = PluginSpec.make(Path(path).resolve().parent / ctrl_raw["module"], ctrl_raw["class"],
                                ctrl_raw.get("params", {}), None if gf in (0, "stock") else float(gf),
-                               ctrl_raw.get("episode_s", 10.0))
+                               ctrl_raw.get("episode_s", 10.0), ctrl_raw.get("cameras", ()),
+                               ctrl_raw.get("camera_hz", 10.0), ctrl_raw.get("image_size", (128, 128)))
         return ctrl, _suite(raw, path)
     unknown = set(ctrl_raw) - allowed
     if unknown:
