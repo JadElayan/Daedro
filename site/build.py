@@ -18,4 +18,6 @@ form = Path(root / "site" / "form.html").read_text() if (root / "site" / "form.h
 html = (root / "site" / "template.html").read_text().replace("{{MARK}}", mark).replace("{{REPORT}}", report).replace("{{FORM}}", form)
 (dist / "index.html").write_text(html)
 shutil.copy(root / "brand" / "favicon.svg", dist / "favicon.svg")
+for asset in ("Daedro-demo.mp4", "Daedro-demo-poster.jpg"):
+    shutil.copy(root / "site" / asset, dist / asset)
 print("built", dist / "index.html")

@@ -47,14 +47,16 @@ h1 { font-size: clamp(2.95rem, 5.25vw, 4.65rem); text-wrap: balance; }
 h2 { font-size: clamp(2.15rem, 4.4vw, 3.6rem); }
 h3 { font-size: 1.25rem; letter-spacing: -.035em; }
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 5rem); align-items: center; padding-block: clamp(4.5rem, 8vw, 7.25rem); }
-.tag, .eyebrow, figcaption, .plate-label { font: 500 .78rem/1.55 var(--mono); }
+.tag, .eyebrow, figcaption { font: 500 .78rem/1.55 var(--mono); }
 .tag { display: inline-flex; align-items: center; gap: .55rem; margin-bottom: 1.25rem; color: var(--muted); }
 .tag::before { content: ""; width: .4rem; height: .4rem; background: var(--accent); }
 .lede { max-width: 44ch; margin-block: 1.2rem 1.75rem; font-size: clamp(1rem, 2vw, 1.18rem); color: var(--muted); }
 .plate { min-width: 0; border: 1px solid var(--line); background: #0b0b0b; }
-.plate-label { padding: .7rem .85rem; border-bottom: 1px solid var(--line); color: var(--muted); }
-.diagram svg { display: block; width: 100%; height: auto; }
-.diagram figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .35rem 1rem; padding: .7rem .85rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; }
+.demo video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #080a0a; }
+.demo figcaption { padding: .7rem .85rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .75rem; }
+.demo details { margin-top: .35rem; }
+.demo summary { width: fit-content; cursor: pointer; }
+.demo details p { margin-top: .4rem; font: .875rem/1.5 Geist, system-ui, sans-serif; }
 section { border-top: 1px solid var(--line); padding-block: clamp(3rem, 7vw, 6rem); }
 .section-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 1rem 3rem; margin-bottom: 1.75rem; }
 .eyebrow { margin-bottom: .65rem; color: var(--accent); }
@@ -119,10 +121,20 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
         <a class="btn ghost" href="#report">See a real report</a>
       </div>
     </div>
-    <div class="plate">
-      <p class="plate-label">Illustrative simulation trajectories</p>
-      <figure class="diagram"><svg viewBox="0 0 520 321" role="img" aria-label="A reference trajectory and alternate paths travel within a dashed constraint. A highlighted path diverges outside the boundary, where a square marks the saved scenario."><g stroke="#222" stroke-width="1"><path d="M35 19v281 M28 26h458"/><path d="M84 19v281 M28 55h458"/><path d="M133 19v281 M28 84h458"/><path d="M182 19v281 M28 113h458"/><path d="M231 19v281 M28 142h458"/><path d="M280 19v281 M28 171h458"/><path d="M329 19v281 M28 200h458"/><path d="M378 19v281 M28 229h458"/><path d="M427 19v281 M28 258h458"/><path d="M476 19v281 M28 287h458"/></g><path d="M67 63h369v185H67z" stroke="#868686" stroke-dasharray="5 6" fill="none"/><g fill="none" stroke="#68686d" stroke-width="1.2"><path d="M44 222C123 216 157 178 199 155S281 148 321 121 392 100 463 112"/><path d="M44 231C129 220 144 185 200 159S276 153 326 127 402 110 463 118"/><path d="M44 216C128 205 133 173 189 149S279 136 324 114 398 97 463 102"/></g><path d="M44 225C129 217 152 179 199 153S278 144 324 119 400 102 463 108" stroke="#fafafa" stroke-width="2.3" fill="none"/><path d="M44 225C129 217 152 179 199 153S270 142 324 166 396 264 459 270" stroke="#7edec8" stroke-width="2.2" fill="none"/><rect x="408" y="233" width="73" height="56" fill="none" stroke="#7edec8"/><rect x="454" y="265" width="9" height="9" fill="#7edec8"/><g fill="#a1a1aa" font-family="monospace" font-size="12"><text x="73" y="55">DECLARED CONSTRAINT</text><text x="40" y="306">ILLUSTRATIVE WORKSPACE</text><text x="366" y="306">REPLAY SCENARIO</text></g></svg><figcaption><span>Solid · reference / fine · variations</span><span>Dashed · operating envelope</span></figcaption></figure>
-    </div>
+    <figure class="plate demo" aria-labelledby="demo-caption">
+      <video id="homepage-demo" width="1280" height="720" controls muted playsinline preload="metadata"
+        poster="Daedro-demo-poster.jpg" aria-label="Daedro demo: compare two simulated robot arms and replay a failure">
+        <source src="Daedro-demo.mp4" type="video/mp4">
+        <a href="Daedro-demo.mp4">Download the demo video</a>
+      </video>
+      <figcaption id="demo-caption">
+        <span>17-second demo · simulation reconstruction</span>
+        <details>
+          <summary>Transcript</summary>
+          <p>Two simulated Franka Panda arms run the same pick-and-place scenario. The baseline places the part. The proposed controller drops it in transit. Daedro flags seven regressions in the pull request report and provides the command to replay scenario 137.</p>
+        </details>
+      </figcaption>
+    </figure>
   </header>
 
   <section id="report" aria-labelledby="report-h">
@@ -175,5 +187,11 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
   <span>© 2026 Daedro · an early prototype</span>
   <span>Simulation results are not hardware validation.</span>
 </footer>
+<script>
+  const demo = document.querySelector('#homepage-demo');
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    demo.play().catch(() => {});
+  }
+</script>
 </body>
 </html>
