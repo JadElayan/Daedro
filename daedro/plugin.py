@@ -81,7 +81,7 @@ class PluginSpec:
         return getattr(mod, self.cls)(**dict(self.params))
 
 
-def run_plugin_episode(p: SceneParams, seed: int, spec: PluginSpec) -> dict:
+def run_plugin_episode(p: SceneParams, seed: int, spec: PluginSpec, recorder=None) -> dict:
     rng = np.random.default_rng(seed)
     m = build_model(p, spec.grip_force_n)
     d = mujoco.MjData(m)
@@ -128,6 +128,8 @@ def run_plugin_episode(p: SceneParams, seed: int, spec: PluginSpec) -> dict:
             d.ctrl[:7] = q_t + rng.normal(0.0, p.ik_noise, 7)
             d.ctrl[grip] = 255.0 * g
         mujoco.mj_step(m, d)
+        if recorder is not None:
+            recorder.step(m, d)
         z = d.qpos[obj_q + 2] - p.half_size
         max_lift = max(max_lift, z)
         if z > LIFT_THRESHOLD:

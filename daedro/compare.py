@@ -132,7 +132,8 @@ def _clusters(cmp: Comparison, bins: int = 4) -> list[str]:
     return [l for _, l in lines]
 
 
-def render_markdown(cmp: Comparison, base_label: str, head_label: str, head_config_path: str, max_rows: int = 10) -> str:
+def render_markdown(cmp: Comparison, base_label: str, head_label: str, head_config_path: str, max_rows: int = 10,
+                    videos: list | None = None, videos_url: str | None = None) -> str:
     n = cmp.suite.n
     kb, kh = sum(r["success"] for r in cmp.base), sum(r["success"] for r in cmp.head)
     lb, ub = wilson(kb, n)
@@ -180,6 +181,11 @@ def render_markdown(cmp: Comparison, base_label: str, head_label: str, head_conf
                        f"`daedro repro --config {head_config_path} --scenario {h['scenario']}` |")
         out.append("")
 
+    if videos:
+        where = (f"[download the videos]({videos_url}) (zip: open `index.html`)" if videos_url
+                 else "saved to the preview folder for this run")
+        out += [f"🎬 **Side-by-side replays** of {len(videos)} regressed scenario(s) "
+                f"({', '.join('#' + str(v['scenario']) for v in videos)}): {where}.", ""]
     out += ["<details markdown=\"1\"><summary>Scenario suite and environment</summary>", "",
             f"- Suite: {cmp.suite.method.upper()}, n={n}, seed={cmp.suite.seed}; both versions ran the identical scenarios.",
             "- Declared operating envelope: " + "; ".join(f"`{k}` {lo:g}–{hi:g}" for k, (lo, hi, _) in cmp.suite.space().items()),

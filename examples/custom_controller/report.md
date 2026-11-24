@@ -46,6 +46,8 @@ Paired on identical scenarios: **101 regressed**, **0 fixed**, 19 unchanged. Exa
 | 106 | μ=1.01 · m=0.66 kg · size=2.3 cm · noise=0.002 rad | never_lifted | `daedro repro --config examples/custom_controller/daedro.toml --scenario 106` |
 | 45 | μ=1.20 · m=0.64 kg · size=4.2 cm · noise=0.004 rad | never_lifted | `daedro repro --config examples/custom_controller/daedro.toml --scenario 45` |
 
+🎬 **Side-by-side replays** of 2 regressed scenario(s) (#32, #109): attached to this run as `daedro-preview`.
+
 <details markdown="1"><summary>Scenario suite and environment</summary>
 
 - Suite: LHS, n=120, seed=7; both versions ran the identical scenarios.
