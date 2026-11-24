@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#08090b">
 <meta name="description" content="Daedro compares robot controllers on identical simulation scenarios and gives you a command to replay each regression.">
-<title>Daedro — Regression testing for robot controllers</title>
+<title>Daedro</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,9 +46,7 @@ h1, h2, h3 { line-height: 1.08; letter-spacing: -.05em; font-weight: 600; }
 h1 { font-size: clamp(3.1rem, 5vw, 5.1rem); max-width: 12ch; text-wrap: balance; }
 h2 { font-size: clamp(2.15rem, 4.4vw, 3.6rem); }
 h3 { font-size: 1.25rem; letter-spacing: -.035em; }
-.hero { display: grid; grid-template-columns: minmax(0, .77fr) minmax(0, 1.23fr); gap: clamp(1.8rem, 4vw, 4.5rem); align-items: center; padding-block: clamp(3rem, 7vw, 6.75rem); }
-.hero-meta { display: flex; align-items: center; justify-content: space-between; gap: .55rem 1rem; flex-wrap: wrap; padding: .65rem .9rem; border-bottom: 1px solid var(--line); color: var(--accent); font: .72rem/1.5 var(--mono); letter-spacing: .045em; }
-.hero-meta span + span { color: var(--muted); }
+.hero { display: grid; grid-template-columns: minmax(0, .77fr) minmax(0, 1.23fr); gap: clamp(1.8rem, 5vw, 5rem); align-items: center; padding-block: clamp(3rem, 6vw, 5.5rem); }
 .demo { position: relative; min-width: 0; }
 .demo::before, .demo::after { content: ""; position: absolute; width: .75rem; height: .75rem; pointer-events: none; border: 1px solid var(--accent); }
 .demo::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
@@ -67,7 +65,7 @@ h3 { font-size: 1.25rem; letter-spacing: -.035em; }
 section { border-top: 1px solid var(--line); padding-block: clamp(3rem, 7vw, 6rem); }
 .section-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 1rem 3rem; margin-bottom: 1.75rem; }
 .eyebrow { margin-bottom: .65rem; color: var(--accent); }
-.sub, .step p, .scope li, .limit, .myth p, .formnote { color: var(--muted); }
+.sub, .step p, .scope li, .limit, .formnote { color: var(--muted); }
 .sub { max-width: 57ch; }
 .pr { min-width: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
 .pr-head { display: flex; align-items: center; gap: .65rem; padding: .75rem clamp(.9rem, 3vw, 1.65rem); border-bottom: 1px solid var(--line); border-radius: 5px 5px 0 0; background: var(--raised); color: var(--muted); font-size: .875rem; overflow-wrap: anywhere; }
@@ -90,8 +88,7 @@ section { border-top: 1px solid var(--line); padding-block: clamp(3rem, 7vw, 6re
 .scope ul { margin: .7rem 0 0; padding-left: 1.1em; }
 .scope li + li { margin-top: .35rem; }
 .limit { margin-top: 1rem; }
-.myth, .access { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 1rem 3rem; }
-.myth h2 { max-width: 16ch; }
+.access { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 1rem 3rem; }
 .access { background: var(--surface); border: 1px solid var(--line); padding: clamp(1rem, 5vw, 3rem); border-radius: 6px; }
 .access .sub { margin-bottom: .85rem; }
 footer { border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: .45rem 1rem; padding-block: 1.2rem 2rem; color: var(--muted); font-size: .875rem; }
@@ -99,7 +96,7 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
   .wrap { width: calc(100% - 2rem); }
   nav { min-height: 3.8rem; }
   .nav-links .wide { display: none; }
-  .hero, .section-intro, .steps, .scope, .myth, .access { grid-template-columns: minmax(0, 1fr); }
+  .hero, .section-intro, .steps, .scope, .access { grid-template-columns: minmax(0, 1fr); }
   .hero { gap: 1.5rem; padding-block: 2.25rem; }
   h1 { font-size: clamp(2.65rem, 11vw, 4rem); max-width: 15ch; }
   .hero .lede { margin-block: .8rem 1.15rem; }
@@ -115,7 +112,7 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
     <div class="nav-links">
       <a class="wide" href="#report">Demo report</a>
       <a class="wide" href="#how">How it works</a>
-      <a class="btn" href="#access">Early access</a>
+      <a class="btn" href="#access">Join the pilot</a>
     </div>
   </nav>
 </div>
@@ -123,23 +120,22 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
 <main class="wrap">
   <header class="hero">
     <div>
-      <p class="tag">Early prototype · simulation only</p>
-      <h1>See what broke before it reaches the robot.</h1>
-      <p class="lede">Daedro runs the old and new robot software through the same simulated tasks. If the update breaks something, you get the exact case to replay.</p>
+      <p class="tag">Simulation only</p>
+      <h1>Regression tests for robots.</h1>
+      <p class="lede">Compare two software versions in simulation. Replay what breaks.</p>
       <div class="actions">
-        <a class="btn" href="#access">Request early access</a>
-        <a class="btn ghost" href="#report">See a real report</a>
+        <a class="btn" href="#access">Join the pilot</a>
+        <a class="btn ghost" href="#report">View report</a>
       </div>
     </div>
     <figure class="plate demo" aria-labelledby="demo-caption">
-      <div class="hero-meta"><span>SCENARIO 137 / PICK-AND-PLACE</span><span>ORIGINAL VS. UPDATE</span></div>
       <video id="homepage-demo" width="1280" height="720" controls muted playsinline preload="metadata"
-        poster="Daedro-demo-poster.jpg" aria-label="Daedro demo: compare two simulated robot arms and replay a failure">
+        poster="Daedro-demo-poster.jpg" aria-label="Daedro demo: two software versions tested on the same robot task">
         <source src="Daedro-demo.mp4" type="video/mp4">
         <a href="Daedro-demo.mp4">Download the demo video</a>
       </video>
       <figcaption id="demo-caption">
-        <span>22-second demo · stylized reconstruction of a real test case</span>
+        <span>Scenario 137 · recorded in MuJoCo</span>
         <details>
           <summary>Transcript</summary>
           <p>Two simulated Franka Panda arms run the same pick-and-place scenario. The baseline places the part. The proposed controller drops it in transit. Daedro flags seven regressions in the pull request report and provides the command to replay scenario 137.</p>
@@ -151,10 +147,9 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
   <section id="report" class="report-band" aria-labelledby="report-h">
     <div class="section-intro">
       <div>
-        <p class="eyebrow">Real regression report</p>
-        <h2 id="report-h">The report behind the replay.</h2>
+        <h2 id="report-h">Regression report</h2>
       </div>
-      <p class="sub">The update sped up the pick cycle and lowered the grip force. Daedro ran both versions under the same conditions and found seven cases that passed on the original and failed on the update.</p>
+      <p class="sub">Both versions ran the same 200 tests. Seven passed on the original and failed after the update.</p>
     </div>
     <article class="pr" aria-label="Pull request comment">
       <div class="pr-head">{{MARK}}<span><b>daedro</b> commented on <b>faster-softer-grip</b></span></div>
@@ -165,9 +160,9 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
   <section id="how" aria-labelledby="how-h">
     <h2 id="how-h">How it works</h2>
     <ol class="steps" role="list">
-      <li class="step"><h3>Define the conditions</h3><p>Declare the range of part mass, friction, and other conditions your controller should handle.</p></li>
-      <li class="step"><h3>Open a pull request</h3><p>The GitHub Action uses the Daedro CLI to test both versions with the same inputs and seeds.</p></li>
-      <li class="step"><h3>Replay a failure</h3><p>See which conditions failures have in common, then copy the one-line command to replay a specific case.</p></li>
+      <li class="step"><h3>Define the conditions</h3><p>Set the task and the conditions it should handle.</p></li>
+      <li class="step"><h3>Open a pull request</h3><p>Test both versions with the same inputs and seeds.</p></li>
+      <li class="step"><h3>Replay a failure</h3><p>Copy the command for the case you want to inspect.</p></li>
     </ol>
   </section>
 
@@ -180,15 +175,10 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
     <p class="limit">Passing in simulation does not guarantee real-world safety.</p>
   </section>
 
-  <section class="myth" aria-labelledby="myth-h">
-    <div><p class="eyebrow">The name</p><h2 id="myth-h">“Fly the middle course.”</h2></div>
-    <p>Daedro takes its name from Daedalus, the Greek craftsman who built moving statues. His advice to Icarus was to fly between the sea and the sun. We took that idea into testing by asking what range of conditions a controller can handle.</p>
-  </section>
-
   <section id="access" aria-labelledby="access-h">
     <div class="access">
-      <h2 id="access-h">Request early access</h2>
-      <div><p class="sub">If your team works on robot manipulation, tell us how you test controller changes. We’d like to try Daedro on a real case with you.</p>
+      <h2 id="access-h">Testing a robot arm?</h2>
+      <div><p class="sub">Bring a controller change or a failure you want to reproduce.</p>
       {{FORM}}</div>
     </div>
   </section>
