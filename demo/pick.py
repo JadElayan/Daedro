@@ -11,7 +11,7 @@ def smooth(s):
 
 
 class WaypointPick:
-    def __init__(self, hover=0.15, carry=0.20, close_early_s=0.0):
+    def __init__(self, hover=0.15, carry=0.20, close_early_s=0.35):
         self.hover, self.carry = hover, carry
         self.close_early_s = close_early_s  # start closing the gripper this long before the descent ends
 
