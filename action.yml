@@ -10,6 +10,9 @@ inputs:
   fail-on:
     description: "Fail the check if regressions exceed this count (empty = never fail)"
     default: ""
+  videos:
+    description: "Number of regressed scenarios to film side by side (0 = no videos)"
+    default: "3"
   comment:
     description: "Post or update a PR comment with the report"
     default: "true"
@@ -29,6 +32,7 @@ runs:
     - name: Install Daedro and the pinned robot model
       shell: bash
       run: |
+        sudo apt-get install -y -qq libegl1 libgl1 ffmpeg >/dev/null
         pip install --quiet "${{ github.action_path }}"
         git init -q "$RUNNER_TEMP/menagerie"
         git -C "$RUNNER_TEMP/menagerie" fetch -q --depth 1 https://github.com/google-deepmind/mujoco_menagerie eea4c7431b63da8278b0ff31638e0b0e941cec0e
@@ -41,10 +45,21 @@ runs:
         git fetch -q --depth 1 origin "${{ github.base_ref }}"
         args=(--config "${{ inputs.config }}" --base-ref "origin/${{ github.base_ref }}" --head-label "PR #${{ github.event.pull_request.number }}" --report daedro-report.md --json daedro-report.json --workers "$(nproc)")
         if [ -n "${{ inputs.fail-on }}" ]; then args+=(--fail-on "${{ inputs.fail-on }}"); fi
-        set +e; daedro ci "${args[@]}"; code=$?; set -e
+        if [ "${{ inputs.videos }}" != "0" ]; then
+          args+=(--videos daedro-preview --max-videos "${{ inputs.videos }}" --videos-url "__DAEDRO_VIDEOS_URL__")
+        fi
+        set +e; MUJOCO_GL=egl daedro ci "${args[@]}"; code=$?; set -e
         echo "report=daedro-report.md" >> "$GITHUB_OUTPUT"
         cat daedro-report.md >> "$GITHUB_STEP_SUMMARY"
         echo "code=$code" >> "$GITHUB_OUTPUT"
+    - name: Upload video previews
+      id: upload
+      if: hashFiles('daedro-preview/*.mp4') != ''
+      uses: actions/upload-artifact@v4
+      with:
+        name: daedro-preview
+        path: daedro-preview
+        retention-days: 30
     - name: Comment on the PR
       if: inputs.comment == 'true' && github.event.pull_request.number
       shell: bash
@@ -52,6 +67,9 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
         marker='<!-- daedro-report -->'
+        url="${{ steps.upload.outputs.artifact-url }}"
+        [ -n "$url" ] || url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        sed -i "s|__DAEDRO_VIDEOS_URL__|$url|g" daedro-report.md
         body="$(printf '%s\n%s' "$marker" "$(cat daedro-report.md)")"
         id=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --paginate \
              --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n1)

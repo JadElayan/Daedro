@@ -24,7 +24,12 @@ def _compare(a) -> int:
         print("note: [suite] differs between base and head; using the head suite for both so scenarios stay paired.",
               file=sys.stderr)
     cmp = compare(base_ctrl, head_ctrl, head_suite, a.workers)
-    md = render_markdown(cmp, a.base_label, a.head_label, a.head)
+    videos = []
+    if getattr(a, "videos", None) and cmp.regressions:
+        from .video import render_previews
+        videos = render_previews(cmp, a.base_label, a.head_label, a.videos, a.max_videos)
+    md = render_markdown(cmp, a.base_label, a.head_label, a.head, videos=videos,
+                         videos_url=getattr(a, "videos_url", None))
     if a.report:
         open(a.report, "w").write(md + "\n")
     else:
@@ -48,6 +53,16 @@ def _repro(a) -> int:
     from .plugin import PluginSpec, run_plugin_episode
     r = run_plugin_episode(params, seed, ctrl) if isinstance(ctrl, PluginSpec) else run_episode(params, seed, controller=ctrl).to_dict()
     print(json.dumps({"scenario": a.scenario, "params": params.__dict__, "seed": seed, "result": r}, indent=1))
+    return 0
+
+
+def _preview(a) -> int:
+    from .video import render_scenario
+    base_ctrl, _ = cfgmod.load(a.base)
+    head_ctrl, suite = cfgmod.load(a.head)
+    seed, params = sample(suite.method, suite.n, suite.seed, suite.space())[a.scenario]
+    v = render_scenario(base_ctrl, head_ctrl, params, seed, a.scenario, a.base_label, a.head_label, a.out)
+    print(json.dumps(v))
     return 0
 
 
@@ -82,7 +97,8 @@ def _ci(a) -> int:
     try:
         ns = argparse.Namespace(base=base_path, head=a.config, base_label=a.base_ref.split("/")[-1],
                                 head_label=a.head_label, report=a.report, json=a.json, fail_on=a.fail_on,
-                                workers=a.workers)
+                                workers=a.workers, videos=a.videos, max_videos=a.max_videos,
+                                videos_url=a.videos_url)
         return _compare(ns)
     finally:
         subprocess.call(["git", "worktree", "remove", "--force", tmp])
@@ -97,7 +113,15 @@ def main(argv=None) -> int:
     c.add_argument("--report"); c.add_argument("--json")
     c.add_argument("--fail-on", type=int, default=None, help="exit 1 if regressions exceed this count")
     c.add_argument("--workers", type=int, default=4)
+    c.add_argument("--videos", help="directory for side-by-side MP4s of the top regressions")
+    c.add_argument("--max-videos", type=int, default=3)
+    c.add_argument("--videos-url", help="where the videos will be viewable (linked from the report)")
     c.set_defaults(fn=_compare)
+    pv = sub.add_parser("preview", help="film one scenario: base and head side by side")
+    pv.add_argument("--base", required=True); pv.add_argument("--head", required=True)
+    pv.add_argument("--scenario", type=int, required=True); pv.add_argument("--out", required=True)
+    pv.add_argument("--base-label", default="base"); pv.add_argument("--head-label", default="head")
+    pv.set_defaults(fn=_preview)
     r = sub.add_parser("repro", help="replay one scenario exactly")
     r.add_argument("--config", required=True); r.add_argument("--scenario", type=int, required=True)
     r.set_defaults(fn=_repro)
@@ -110,6 +134,8 @@ def main(argv=None) -> int:
     ci.add_argument("--head-label", default="this PR"); ci.add_argument("--report", default="daedro-report.md")
     ci.add_argument("--json", default=None); ci.add_argument("--fail-on", type=int, default=None)
     ci.add_argument("--workers", type=int, default=4)
+    ci.add_argument("--videos"); ci.add_argument("--max-videos", type=int, default=3)
+    ci.add_argument("--videos-url")
     ci.set_defaults(fn=_ci)
     a = ap.parse_args(argv)
     return a.fn(a)

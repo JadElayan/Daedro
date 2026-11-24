@@ -77,7 +77,7 @@ def _ik_step(m, d, site_id, x_goal, R_goal, dof, damping=1e-2):
 
 
 def run_episode(p: SceneParams, seed: int, grip_force_n: float | None = 70.0, finger_contact: str = "flat_pad",
-                controller: ControllerConfig | None = None) -> EpisodeResult:
+                controller: ControllerConfig | None = None, recorder=None) -> EpisodeResult:
     """Run one episode. If `controller` is given, its grip_force_n wins over the argument."""
     c = controller or ControllerConfig(grip_force_n=grip_force_n)
     grip_force_n = c.grip_force_n
@@ -147,6 +147,8 @@ def run_episode(p: SceneParams, seed: int, grip_force_n: float | None = 70.0, fi
                 d.ctrl[:7] = q_t + rng.normal(0.0, p.ik_noise, 7)
                 d.ctrl[grip_act] = grip
             mujoco.mj_step(m, d)
+            if recorder is not None:
+                recorder.step(m, d)
             if name in ("lift", "move", "place"):
                 max_lift = max(max_lift, obj_bottom())
                 squeeze.append(abs(d.actuator_force[grip_act]))
@@ -163,6 +165,8 @@ def run_episode(p: SceneParams, seed: int, grip_force_n: float | None = 70.0, fi
     # Let the object come to rest before scoring.
     for _ in range(steps_per_s // 2):
         mujoco.mj_step(m, d)
+        if recorder is not None:
+            recorder.step(m, d)
     err = float(np.linalg.norm(d.qpos[obj_adr:obj_adr + 2] - np.array(TARGET_XY)))
     resting = obj_bottom() < 0.01 and np.linalg.norm(d.qvel[m.joint("object_free").dofadr[0]:][:3]) < 0.05
 
