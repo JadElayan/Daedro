@@ -31,3 +31,21 @@ def test_recorder_renders_the_scene():
         pytest.skip(f"off-screen rendering unavailable: {e}")
     assert r.frames and r.frames[0].shape == (64, 96, 3) and r.frames[0].std() > 1
     r.close()
+
+
+def test_video_failure_does_not_lose_the_report(tmp_path, monkeypatch):
+    import daedro.video
+    from daedro.cli import main
+    base = tmp_path / "b.toml"
+    base.write_text("[suite]\nn = 4\nseed = 1\n[suite.envelope]\nmass = [0.3, 1.0]\nfriction = [0.5, 1.2]\nik_noise = [0.0, 0.002]\n")
+    head = tmp_path / "h.toml"
+    head.write_text('[controller]\ngrip_force_n = "stock"\n' + base.read_text())
+
+    def boom(*a, **k):
+        raise RuntimeError("no GL here")
+    monkeypatch.setattr(daedro.video, "render_previews", boom)
+    rc = main(["compare", "--base", str(base), "--head", str(head), "--report", str(tmp_path / "r.md"),
+               "--videos", str(tmp_path / "v"), "--fail-on", "0", "--workers", "2"])
+    report = (tmp_path / "r.md").read_text()
+    assert rc == 1 and "Regression detected" in report or "regressed" in report
+    assert "Videos unavailable" in report

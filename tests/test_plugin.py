@@ -46,3 +46,31 @@ def test_ci_catches_a_code_change_on_a_branch(tmp_path, monkeypatch):
     report = (tmp_path / "daedro-report.md").read_text()
     assert rc == 1 and "Regression detected" in report or "regressed" in report
     assert "code_sha256" in report  # the report shows the code itself changed
+
+
+def test_vision_policy_receives_camera_images(tmp_path):
+    import os
+    import pytest
+    os.environ.setdefault("MUJOCO_GL", "egl")
+    (tmp_path / "v.py").write_text(
+        "import numpy as np\n"
+        "SEEN = []\n"
+        "class V:\n"
+        "    def reset(self, obs):\n"
+        "        self.shapes = {k: v.shape for k, v in obs['images'].items()}\n"
+        "    def act(self, obs):\n"
+        "        assert set(obs['images']) == {'front', 'wrist'}\n"
+        "        assert obs['images']['wrist'].shape == (48, 64, 3) and obs['images']['front'].std() > 1\n"
+        "        return {'tcp': obs['tcp'], 'gripper': 1.0}\n")
+    p = tmp_path / "v.toml"
+    p.write_text('[controller]\nmodule = "v.py"\nclass = "V"\ncameras = ["front", "wrist"]\n'
+                 'image_size = [48, 64]\nepisode_s = 0.5\n[suite]\nn = 1\n')
+    from daedro.plugin import run_plugin_episode
+    ctrl, suite = cfgmod.load(p)
+    from daedro.sampling import sample
+    seed, params = sample(suite.method, 1, suite.seed, suite.space())[0]
+    try:
+        r = run_plugin_episode(params, seed, ctrl)
+    except Exception as e:
+        pytest.skip(f"off-screen rendering unavailable: {e}")
+    assert r["outcome"] != "controller_error", r["controller_error"]

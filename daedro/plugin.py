@@ -21,10 +21,14 @@ with g in [0, 1]: 1 = fully open, 0 = closed.
 
 `obs` keys (numpy arrays, metres / radians / seconds):
     t, q (7), qd (7), tcp (3), gripper_width, object_pos (3), object_quat (4),
-    target_pos (3), object_half_size, params (the scenario's physical parameters)
+    target_pos (3), object_half_size, params (the scenario's physical parameters),
+    images ({camera: HxWx3 uint8}; only cameras listed in daedro.toml, refreshed at camera_hz)
 
-Object pose is privileged simulator state, which is what a scripted controller needs;
-perception-based policies are not supported yet.
+Vision policies: add `cameras = ["front", "wrist"]` (and optionally camera_hz, image_size)
+under [controller]. A vision policy should ignore object_pos, which stays available only
+because scripted controllers need it; Daedro can't stop a policy from reading it.
+
+Object pose is privileged simulator state, which is what a scripted controller needs.
 
 Outcome classification here is phase-independent, because we can't know a custom
 controller's internal phases: success / never_lifted / dropped / misplaced.
@@ -55,14 +59,22 @@ class PluginSpec:
     grip_force_n: float | None = 70.0
     episode_s: float = 10.0
     code_sha256: str = field(default="", compare=True)
+    cameras: tuple = ()  # any of "front", "wrist": RGB images added to obs["images"]
+    camera_hz: float = 10.0
+    image_size: tuple = (128, 128)  # (height, width)
 
     @staticmethod
-    def make(module: str | Path, cls: str, params: dict | None = None, grip_force_n=70.0, episode_s=10.0) -> "PluginSpec":
+    def make(module: str | Path, cls: str, params: dict | None = None, grip_force_n=70.0, episode_s=10.0,
+             cameras=(), camera_hz=10.0, image_size=(128, 128)) -> "PluginSpec":
         path = Path(module).resolve()
         if not path.exists():
             raise FileNotFoundError(f"controller module not found: {path}")
         sha = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
-        return PluginSpec(str(path), cls, tuple(sorted((params or {}).items())), grip_force_n, float(episode_s), sha)
+        bad = set(cameras) - {"front", "wrist"}
+        if bad:
+            raise ValueError(f"unknown camera(s) {sorted(bad)}; available: front, wrist")
+        return PluginSpec(str(path), cls, tuple(sorted((params or {}).items())), grip_force_n, float(episode_s), sha,
+                          tuple(cameras), float(camera_hz), tuple(int(x) for x in image_size))
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -102,12 +114,25 @@ def run_plugin_episode(p: SceneParams, seed: int, spec: PluginSpec, recorder=Non
     target = np.array([TARGET_XY[0], TARGET_XY[1], 0.0])
     phys = {"friction": p.friction, "mass": p.mass, "half_size": p.half_size, "ik_noise": p.ik_noise}
 
+    renderer = None
+    if spec.cameras:
+        renderer = mujoco.Renderer(m, spec.image_size[0], spec.image_size[1])
+    cam_every = max(1, int(round(1.0 / (spec.camera_hz * m.opt.timestep))))
+    images: dict = {}
+
+    def capture():
+        for c in spec.cameras:
+            renderer.update_scene(d, camera=c)
+            images[c] = renderer.render().copy()
+
     def obs() -> dict:
-        return {"t": d.time, "q": d.qpos[arm_q].copy(), "qd": d.qvel[arm_v].copy(), "tcp": d.site_xpos[tcp].copy(),
+        return {"images": dict(images),"t": d.time, "q": d.qpos[arm_q].copy(), "qd": d.qvel[arm_v].copy(), "tcp": d.site_xpos[tcp].copy(),
                 "gripper_width": float(d.qpos[f1] + d.qpos[f2]), "object_pos": d.qpos[obj_q:obj_q + 3].copy(),
                 "object_quat": d.qpos[obj_q + 3:obj_q + 7].copy(), "target_pos": target.copy(),
                 "object_half_size": p.half_size, "params": dict(phys)}
 
+    if renderer:
+        capture()
     ctrl = spec.instantiate()
     ctrl.reset(obs())
     lifted, dropped_after_lift, max_lift = False, False, 0.0
@@ -128,6 +153,8 @@ def run_plugin_episode(p: SceneParams, seed: int, spec: PluginSpec, recorder=Non
             d.ctrl[:7] = q_t + rng.normal(0.0, p.ik_noise, 7)
             d.ctrl[grip] = 255.0 * g
         mujoco.mj_step(m, d)
+        if renderer and (k + 1) % cam_every == 0:
+            capture()
         if recorder is not None:
             recorder.step(m, d)
         z = d.qpos[obj_q + 2] - p.half_size
@@ -137,6 +164,8 @@ def run_plugin_episode(p: SceneParams, seed: int, spec: PluginSpec, recorder=Non
         elif lifted and z < 0.01 and np.linalg.norm(d.qpos[obj_q:obj_q + 2] - target[:2]) > 0.05:
             dropped_after_lift = True
 
+    if renderer:
+        renderer.close()
     err = float(np.linalg.norm(d.qpos[obj_q:obj_q + 2] - target[:2]))
     resting = (d.qpos[obj_q + 2] - p.half_size) < 0.01 and np.linalg.norm(d.qvel[obj_v:obj_v + 3]) < 0.05
     if error:

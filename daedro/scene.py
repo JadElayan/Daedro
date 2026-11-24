@@ -76,6 +76,10 @@ def build_model(p: SceneParams, grip_force_n: float | None = None, finger_contac
     wb.add_site(name="target", pos=[TARGET_XY[0], TARGET_XY[1], 0.001], size=[0.03, 0.03, 0.001],
                 type=mujoco.mjtGeom.mjGEOM_BOX, rgba=[0, 1, 0, 0.4])
     spec.body("hand").add_site(name="tcp", pos=[0, 0, 0.1034])  # centre of the fingertip pads
+    # Cameras for vision-based policies (no effect on physics). "front" faces the robot across
+    # the workspace; "wrist" looks down past the fingers.
+    wb.add_camera(name="front", pos=[1.25, 0.0, 0.55], xyaxes=[0, 1, 0, -0.42, 0, 0.91], fovy=50)
+    spec.body("hand").add_camera(name="wrist", pos=[0.07, 0.0, 0.02], xyaxes=[0, -1, 0, -0.96, 0, -0.28], fovy=80)
 
     # MuJoCo combines contact friction as the max of the pair. Menagerie fingers and floor
     # default to mu=1, which would mask the object's friction entirely. Set everything
