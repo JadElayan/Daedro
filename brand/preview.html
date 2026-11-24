@@ -1,0 +1,8 @@
+<!doctype html><html><head><link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;display:grid;grid-template-columns:1fr 1fr;font-family:'Inter Tight',sans-serif}
+.p{display:flex;gap:28px;align-items:center;justify-content:center;height:300px}
+.l{background:#F6F4F0;color:#14120F}.d{background:#0E0D0C;color:#F2EFEA}
+.w{font-size:64px;font-weight:600;letter-spacing:-0.035em}
+svg{width:110px;height:110px}.s svg{width:40px;height:40px}.s .w{font-size:28px}.s{height:120px;gap:12px}</style></head><body>
+<div class="p l" id="a"></div><div class="p d" id="b"></div><div class="p l s" id="c"></div><div class="p d s" id="e"></div>
+<script>fetch('mark.svg').then(r=>r.text()).then(t=>{for(const id of['a','b','c','e'])document.getElementById(id).innerHTML=t+'<span class="w">daedro</span>'})</script></body></html>

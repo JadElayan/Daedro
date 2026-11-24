@@ -1,0 +1,63 @@
+{
+ "suite": {
+  "method": "lhs",
+  "n": 200,
+  "seed": 2026,
+  "envelope": {
+   "friction": [
+    0.2,
+    1.2,
+    "log"
+   ],
+   "half_size": [
+    0.015,
+    0.035,
+    "linear"
+   ],
+   "ik_noise": [
+    0.0,
+    0.01,
+    "linear"
+   ],
+   "mass": [
+    0.05,
+    1.0,
+    "log"
+   ]
+  }
+ },
+ "base_config": {
+  "speed": 1.0,
+  "hover_m": 0.15,
+  "carry_m": 0.2,
+  "grasp_offset_m": 0.0,
+  "grip_force_n": 70,
+  "ik_damping": 0.01
+ },
+ "head_config": {
+  "speed": 1.4,
+  "hover_m": 0.15,
+  "carry_m": 0.2,
+  "grasp_offset_m": 0.0,
+  "grip_force_n": 40,
+  "ik_damping": 0.01
+ },
+ "base_success_rate": 0.97,
+ "head_success_rate": 0.935,
+ "regressions": [
+  2,
+  22,
+  58,
+  87,
+  137,
+  156,
+  196
+ ],
+ "fixes": [],
+ "mcnemar_p": 0.015625,
+ "environment": {
+  "simulator": "MuJoCo 4.0.1",
+  "robot": "Franka Panda (MuJoCo Menagerie eea4c74)",
+  "task": "scripted pick-and-place, 3 cm success radius"
+ }
+}

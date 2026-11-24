@@ -1,0 +1,16 @@
+# Proposed change: 40% faster cycle, softer grip to avoid crushing parts.
+[controller]
+speed = 1.4
+grip_force_n = 40
+
+[suite]
+method = "lhs"
+n = 200
+seed = 2026
+
+# Declared operating envelope: the parts this cell is meant to handle.
+[suite.envelope]
+friction  = [0.2, 1.2, "log"]     # no oily or wet parts
+mass      = [0.05, 1.0, "log"]    # up to 1 kg
+half_size = [0.015, 0.035]        # 3 to 7 cm cubes
+ik_noise  = [0.0, 0.01]           # calibrated arm

@@ -1,0 +1,17 @@
+# Copy to .github/workflows/daedro.yml in the repo that holds your daedro.toml.
+name: Daedro
+on:
+  pull_request:
+    paths: ["daedro.toml"]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  regression-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: <your-org>/daedro@main   # replace with wherever this repo is published
+        with:
+          config: daedro.toml
+          fail-on: "0"

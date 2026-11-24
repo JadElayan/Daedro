@@ -1,0 +1,65 @@
+name: "Daedro regression check"
+description: "Run the same seeded simulation scenarios on the base and PR versions of a robot controller and comment the regression report on the PR."
+branding:
+  icon: "activity"
+  color: "orange"
+inputs:
+  config:
+    description: "Path to daedro.toml in your repo"
+    default: "daedro.toml"
+  fail-on:
+    description: "Fail the check if regressions exceed this count (empty = never fail)"
+    default: ""
+  comment:
+    description: "Post or update a PR comment with the report"
+    default: "true"
+  github-token:
+    description: "Token used to comment"
+    default: ${{ github.token }}
+outputs:
+  report:
+    description: "Path to the Markdown report"
+    value: ${{ steps.run.outputs.report }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install Daedro and the pinned robot model
+      shell: bash
+      run: |
+        pip install --quiet "${{ github.action_path }}"
+        git init -q "$RUNNER_TEMP/menagerie"
+        git -C "$RUNNER_TEMP/menagerie" fetch -q --depth 1 https://github.com/google-deepmind/mujoco_menagerie eea4c7431b63da8278b0ff31638e0b0e941cec0e
+        git -C "$RUNNER_TEMP/menagerie" checkout -q FETCH_HEAD
+        echo "MENAGERIE_PATH=$RUNNER_TEMP/menagerie" >> "$GITHUB_ENV"
+    - name: Compare base and PR
+      id: run
+      shell: bash
+      run: |
+        git fetch -q --depth 1 origin "${{ github.base_ref }}"
+        args=(--config "${{ inputs.config }}" --base-ref "origin/${{ github.base_ref }}" --head-label "PR #${{ github.event.pull_request.number }}" --report daedro-report.md --json daedro-report.json --workers "$(nproc)")
+        if [ -n "${{ inputs.fail-on }}" ]; then args+=(--fail-on "${{ inputs.fail-on }}"); fi
+        set +e; daedro ci "${args[@]}"; code=$?; set -e
+        echo "report=daedro-report.md" >> "$GITHUB_OUTPUT"
+        cat daedro-report.md >> "$GITHUB_STEP_SUMMARY"
+        echo "code=$code" >> "$GITHUB_OUTPUT"
+    - name: Comment on the PR
+      if: inputs.comment == 'true' && github.event.pull_request.number
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        marker='<!-- daedro-report -->'
+        body="$(printf '%s\n%s' "$marker" "$(cat daedro-report.md)")"
+        id=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --paginate \
+             --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n1)
+        if [ -n "$id" ]; then
+          gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$id" -f body="$body" >/dev/null
+        else
+          gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" -f body="$body" >/dev/null
+        fi
+    - name: Gate
+      shell: bash
+      run: exit ${{ steps.run.outputs.code }}

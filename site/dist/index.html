@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daedro</title>
+<meta name="description" content="Daedro runs the same seeded simulation scenarios on your current and proposed robot controller, and shows exactly which cases broke, with a one-line replay for each.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F4F0;--surface:#FFFFFF;--ink:#14120F;--muted:#6B655D;--line:#E3DED6;--bronze:#B4661F;--bronze-soft:#F3E6D8;--red:#B42318;--red-soft:#FDECEA;--green:#2E7D4F;--code:#F1EEE8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E0D0C;--surface:#171513;--ink:#F2EFEA;--muted:#A39C92;--line:#2A2724;--bronze:#D88A43;--bronze-soft:#2B1F14;--red:#F07167;--red-soft:#2A1716;--green:#6CC08B;--code:#1E1B18}}
+:root[data-theme="dark"]{--bg:#0E0D0C;--surface:#171513;--ink:#F2EFEA;--muted:#A39C92;--line:#2A2724;--bronze:#D88A43;--bronze-soft:#2B1F14;--red:#F07167;--red-soft:#2A1716;--green:#6CC08B;--code:#1E1B18}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.6 "Inter Tight",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:600;font-size:21px;letter-spacing:-.03em}
+.brand svg{width:30px;height:30px;color:var(--ink)}
+.navlinks{display:flex;gap:24px;align-items:center;font-size:15px}
+.navlinks a{text-decoration:none;color:var(--muted)}.navlinks a:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:8px;font-weight:500;font-size:15px;text-decoration:none;border:1px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer;font-family:inherit}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
+.hero{padding:72px 0 56px}
+.tag{display:inline-block;font:500 13px/1 "JetBrains Mono",monospace;color:var(--bronze);background:var(--bronze-soft);padding:7px 10px;border-radius:6px;margin-bottom:24px}
+h1{font-weight:600;font-size:clamp(40px,6.4vw,72px);line-height:1.02;letter-spacing:-.045em;margin:0 0 24px;max-width:14ch}
+.lede{font-size:clamp(18px,2.2vw,21px);color:var(--muted);max-width:58ch;margin:0 0 32px}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+section{padding:72px 0;border-top:1px solid var(--line)}
+.eyebrow{font:500 13px/1 "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 16px}
+h2{font-weight:600;font-size:clamp(28px,3.6vw,40px);letter-spacing:-.035em;line-height:1.1;margin:0 0 16px;max-width:22ch}
+.sub{color:var(--muted);max-width:62ch;margin:0 0 36px}
+/* PR comment frame */
+.pr{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pr-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}
+.pr-head svg{width:20px;height:20px;color:var(--ink)}
+.pr-head b{color:var(--ink);font-weight:600}
+.report{padding:8px 24px 24px;font-size:15px}
+.report h2{font-size:20px;letter-spacing:-.02em;margin:16px 0 12px;max-width:none}
+.report table{border-collapse:collapse;width:100%;margin:8px 0 20px;font-size:14px;display:block;overflow-x:auto}
+.report th,.report td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+.report th{background:var(--code);font-weight:600}
+.report code{font:400 12.5px/1.4 "JetBrains Mono",monospace;background:var(--code);padding:2px 5px;border-radius:4px;white-space:nowrap}
+.report blockquote{margin:16px 0 0;padding:12px 16px;border-left:3px solid var(--bronze);background:var(--bronze-soft);border-radius:0 8px 8px 0}
+.report blockquote p{margin:0}
+.report details{margin:8px 0;color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px}
+.step .n{font:500 13px "JetBrains Mono",monospace;color:var(--bronze)}
+.step h3{margin:8px 0 8px;font-size:19px;letter-spacing:-.02em}
+.step p{margin:0;color:var(--muted);font-size:15px}
+pre{margin:16px 0 0;background:var(--code);border-radius:8px;padding:14px 16px;overflow-x:auto;font:400 13px/1.55 "JetBrains Mono",monospace}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px}
+.card h3{margin:0 0 12px;font-size:17px}
+.card ul{margin:0;padding-left:20px;color:var(--muted);font-size:15px}.card li{margin:6px 0}
+.card.yes h3{color:var(--green)}.card.no h3{color:var(--muted)}
+.myth{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.myth blockquote{margin:0;font-size:clamp(22px,2.8vw,30px);line-height:1.3;letter-spacing:-.02em}
+.myth p{color:var(--muted)}
+form{display:flex;gap:10px;flex-wrap:wrap;max-width:520px}
+label.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+input[type=email]{flex:1 1 240px;padding:11px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:16px}
+.formnote{font-size:14px;color:var(--muted);margin-top:12px}
+footer{padding:40px 0 56px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (max-width:820px){.steps,.cols,.myth{grid-template-columns:1fr}.navlinks a.hide-sm{display:none}.hero{padding:48px 0 40px}section{padding:56px 0}.wrap{padding:0 16px}.report{padding:4px 14px 16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav aria-label="Main">
+  <a class="brand" href="#top" aria-label="Daedro home"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
+  <path d="M20 52 V12 H30 A20 20 0 0 1 50 32" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M50 32 A20 20 0 0 1 30 52 H20" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="0.1 9.4" opacity="0.55"/>
+  <circle cx="20" cy="12" r="5.2" fill="currentColor"/>
+  <circle cx="20" cy="52" r="5.2" fill="currentColor"/>
+  <circle cx="50" cy="32" r="6" fill="#C8782E"/>
+</svg>
+<span>daedro</span></a>
+  <div class="navlinks">
+    <a class="hide-sm" href="#report">Report</a>
+    <a class="hide-sm" href="#how">How it works</a>
+    <a class="hide-sm" href="#today">What works today</a>
+    <a class="btn ghost" href="#access">Request access</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <span class="tag">Early prototype · simulation only</span>
+  <h1>Catch robot regressions before they reach the robot.</h1>
+  <p class="lede">Daedro runs the same seeded scenarios on your current and proposed controller, then shows exactly which cases broke and gives a one-line command to replay each one. It runs on every pull request.</p>
+  <div class="ctas">
+    <a class="btn" href="#access">Request early access</a>
+    <a class="btn ghost" href="#report">See a real report ↓</a>
+  </div>
+</header>
+
+<section id="report" aria-labelledby="report-h">
+  <p class="eyebrow">A real run, not a mock-up</p>
+  <h2 id="report-h">A change that looked harmless in review.</h2>
+  <p class="sub">A team makes the pick cycle 40% faster and softens the grip from 70&nbsp;N to 40&nbsp;N to avoid crushing parts. Daedro ran both versions on the same 200 scenarios inside the declared operating envelope. This is the comment it produced, unedited.</p>
+  <div class="pr">
+    <div class="pr-head"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
+  <path d="M20 52 V12 H30 A20 20 0 0 1 50 32" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M50 32 A20 20 0 0 1 30 52 H20" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="0.1 9.4" opacity="0.55"/>
+  <circle cx="20" cy="12" r="5.2" fill="currentColor"/>
+  <circle cx="20" cy="52" r="5.2" fill="currentColor"/>
+  <circle cx="50" cy="32" r="6" fill="#C8782E"/>
+</svg>
+<span><b>daedro</b> commented on pull request <b>faster-softer-grip</b></span></div>
+    <div class="report"><h2>Daedro regression report: <code>main</code> → <code>faster-softer-grip</code></h2>
+<p>🔴 <strong>Regression detected.</strong> 7 scenarios that passed on <code>main</code> fail on <code>faster-softer-grip</code>.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Success rate</th>
+<th>95% CI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>main</code> (base)</td>
+<td>194/200 = 97.0%</td>
+<td>93.6%–98.6%</td>
+</tr>
+<tr>
+<td><code>faster-softer-grip</code> (head)</td>
+<td>187/200 = 93.5%</td>
+<td>89.2%–96.2%</td>
+</tr>
+</tbody>
+</table>
+<p>Paired on identical scenarios: <strong>7 regressed</strong>, <strong>0 fixed</strong>, 193 unchanged. Exact McNemar p = 0.0156.</p>
+<p><strong>What changed in the controller</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Base</th>
+<th>Head</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>speed</code></td>
+<td>1.0</td>
+<td>1.4</td>
+</tr>
+<tr>
+<td><code>grip_force_n</code></td>
+<td>70</td>
+<td>40</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Outcomes</strong></p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>Base</th>
+<th>Head</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>success</td>
+<td>194</td>
+<td>187</td>
+<td>-7</td>
+</tr>
+<tr>
+<td>slip_on_lift</td>
+<td>0</td>
+<td>6</td>
+<td>+6</td>
+</tr>
+<tr>
+<td>drop_in_transit</td>
+<td>5</td>
+<td>5</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>misplaced</td>
+<td>1</td>
+<td>2</td>
+<td>+1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Where the regressions cluster</strong> (share of base-passing scenarios that regressed, by quarter of the envelope)</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Q1</th>
+<th>Q2</th>
+<th>Q3</th>
+<th>Q4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mass</code></td>
+<td>0.05–0.106: 0%</td>
+<td>0.106–0.224: 0%</td>
+<td>0.224–0.473: 2%</td>
+<td>0.473–1: 14%</td>
+</tr>
+<tr>
+<td><code>friction</code></td>
+<td>0.2–0.313: 11%</td>
+<td>0.313–0.49: 4%</td>
+<td>0.49–0.767: 0%</td>
+<td>0.767–1.2: 0%</td>
+</tr>
+<tr>
+<td><code>ik_noise</code></td>
+<td>0–0.0025: 0%</td>
+<td>0.0025–0.005: 4%</td>
+<td>0.005–0.0075: 4%</td>
+<td>0.0075–0.01: 7%</td>
+</tr>
+<tr>
+<td><code>half_size</code></td>
+<td>0.015–0.02: 6%</td>
+<td>0.02–0.025: 2%</td>
+<td>0.025–0.03: 4%</td>
+<td>0.03–0.035: 2%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Regressed scenarios</strong> (showing 7 of 7)</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Conditions</th>
+<th>Head outcome</th>
+<th>Reproduce</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>137</td>
+<td>μ=0.30 · m=0.94 kg · size=4.0 cm · noise=0.006 rad</td>
+<td>drop_in_transit</td>
+<td><code>daedro repro --config examples/pick_place/daedro.toml --scenario 137</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>μ=0.34 · m=0.84 kg · size=5.5 cm · noise=0.006 rad</td>
+<td>misplaced</td>
+<td><code>daedro repro --config examples/pick_place/daedro.toml --scenario 2</code></td>
+</tr>
+<tr>
+<td>87</td>
+<td>μ=0.26 · m=0.82 kg · size=3.1 cm · noise=0.004 rad</td>
+<td>drop_in_transit</td>
+<td><code>daedro repro --config examples/pick_place/daedro.toml --scenario 87</code></td>
+</tr>
+<tr>
+<td>58</td>
+<td>μ=0.32 · m=0.74 kg · size=5.2 cm · noise=0.008 rad</td>
+<td>drop_in_transit</td>
+<td><code>daedro repro --config examples/pick_place/daedro.toml --scenario 58</code></td>
+</tr>
+<tr>
+<td>196</td>
+<td>μ=0.22 · m=0.70 kg · size=3.5 cm · noise=0.004 rad</td>
+<td>drop_in_transit</td>
+<td><code>daedro repro --config examples/pick_place/daedro.toml --scenario 196</code></td>
+</tr>
+<tr>
+<td>156</td>
+<td>μ=0.22 · m=0.52 kg · size=6.5 cm · noise=0.008 rad</td>
+<td>drop_in_transit</td>
+<td><code>daedro repro --config examples/pick_place/daedro.toml --scenario 156</code></td>
+</tr>
+<tr>
+<td>22</td>
+<td>μ=0.21 · m=0.28 kg · size=3.5 cm · noise=0.010 rad</td>
+<td>misplaced</td>
+<td><code>daedro repro --config examples/pick_place/daedro.toml --scenario 22</code></td>
+</tr>
+</tbody>
+</table>
+<details>
+<summary>Scenario suite and environment</summary>
+<ul>
+<li>Suite: LHS, n=200, seed=2026; both versions ran the identical scenarios.</li>
+<li>Declared operating envelope: <code>friction</code> 0.2–1.2; <code>half_size</code> 0.015–0.035; <code>ik_noise</code> 0–0.01; <code>mass</code> 0.05–1</li>
+<li>MuJoCo 4.0.1 · Franka Panda (MuJoCo Menagerie eea4c74) · scripted pick-and-place, 3 cm success radius</li>
+</ul>
+</details>
+<blockquote>
+<p>⚠️ <strong>Simulation only.</strong> These results come from a MuJoCo model, not hardware. A pass here does not guarantee real-world performance or safety; a regression here is a lead to investigate, not proof of a hardware failure.</p>
+</blockquote></div>
+  </div>
+</section>
+
+<section id="how" aria-labelledby="how-h">
+  <p class="eyebrow">How it works</p>
+  <h2 id="how-h">Paired comparisons, so every difference is your change.</h2>
+  <p class="sub">Both versions face identical conditions: same parts, same friction, same noise seed. If an outcome flips, the controller change caused it, not luck in which tests were drawn. That's what makes a few hundred simulated runs worth acting on.</p>
+  <div class="steps">
+    <div class="step"><span class="n">01</span><h3>Declare the envelope</h3><p>Write down the conditions your cell is meant to handle. Only failures inside them count.</p>
+<pre>[suite.envelope]
+mass     = [0.05, 1.0]
+friction = [0.2, 1.2]</pre></div>
+    <div class="step"><span class="n">02</span><h3>Open a pull request</h3><p>CI runs the base and the PR version on the same seeded scenarios and comments the report.</p>
+<pre>daedro ci \
+  --base-ref origin/main \
+  --fail-on 0</pre></div>
+    <div class="step"><span class="n">03</span><h3>Replay any failure</h3><p>Every regression comes with an exact command that reproduces it, bit for bit.</p>
+<pre>daedro repro \
+  --config daedro.toml \
+  --scenario 137</pre></div>
+  </div>
+</section>
+
+<section id="today" aria-labelledby="today-h">
+  <p class="eyebrow">Honest scope</p>
+  <h2 id="today-h">What works today, and what doesn't yet.</h2>
+  <p class="sub">We'd rather you trust a small claim than doubt a big one.</p>
+  <div class="cols">
+    <div class="card yes"><h3>Works now</h3><ul>
+      <li>MuJoCo simulation of a Franka Panda (MuJoCo Menagerie model) doing pick-and-place</li>
+      <li>Comparing two parameterised controller versions on identical seeded scenarios</li>
+      <li>Paired statistics (exact McNemar test), regression clustering, one-line replay</li>
+      <li>CLI and a GitHub Action that comments on pull requests</li>
+      <li>Physics sanity check: grasp outcomes agree with the Coulomb friction bound in 80 of 81 grid cases</li>
+    </ul></div>
+    <div class="card no"><h3>Not yet</h3><ul>
+      <li>Running your own learned policy or your own robot model</li>
+      <li>Other simulators (Isaac, ManiSkill) or tasks beyond pick-and-place</li>
+      <li>Any hardware validation. A pass in simulation does not guarantee real-world performance or safety.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section aria-labelledby="myth-h">
+  <div class="myth">
+    <div>
+      <p class="eyebrow">The name</p>
+      <h2 id="myth-h" class="vh" style="position:absolute;left:-9999px">Why Daedro</h2>
+      <blockquote>“Fly the middle course.”</blockquote>
+    </div>
+    <div><p>Daedalus, the craftsman of Greek myth, built statues that moved and wings that flew. He told Icarus to stay within the limits they'd been made for: not too high, not too low. Icarus didn't. Daedro is for teams who want to know their machine's limits before it leaves the ground.</p></div>
+  </div>
+</section>
+
+<section id="access" aria-labelledby="access-h">
+  <p class="eyebrow">Early access</p>
+  <h2 id="access-h">Working on a manipulation stack? Let's run your case.</h2>
+  <p class="sub">We're looking for a few teams who compare controller or policy versions and want a second pair of eyes on a real change.</p>
+  <p class="formnote">The early-access sign-up opens shortly.</p>
+
+</section>
+
+<footer>
+  <span>© 2026 Daedro · an early prototype</span>
+  <span>Simulation results are not hardware validation.</span>
+</footer>
+</div>
+</body>
+</html>
