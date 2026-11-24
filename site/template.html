@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#080808">
+<meta name="theme-color" content="#08090b">
 <meta name="description" content="Daedro compares robot controllers on identical simulation scenarios and gives you a command to replay each regression.">
 <title>Daedro — Regression testing for robot controllers</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -13,11 +13,11 @@
 <style>
 :root {
   color-scheme: dark;
-  --bg: #080808;
-  --surface: #101010;
-  --raised: #151515;
-  --line: #2a2a2a;
-  --line-strong: #434343;
+  --bg: #08090b;
+  --surface: #101318;
+  --raised: #171c23;
+  --line: #2b343f;
+  --line-strong: #526071;
   --ink: #fafafa;
   --muted: #aaaab0;
   --accent: #9ab0c7;
@@ -27,7 +27,7 @@
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1rem/1.6 Geist, system-ui, sans-serif; }
 a { color: inherit; text-underline-offset: .22em; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.wrap { width: min(100% - 3rem, 71rem); margin-inline: auto; }
+.wrap { width: min(100% - 3rem, 83rem); margin-inline: auto; }
 .top { border-bottom: 1px solid var(--line); }
 nav { min-height: 4.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .brand { display: inline-flex; align-items: center; gap: .65rem; font-size: 1.05rem; font-weight: 700; letter-spacing: .13em; text-decoration: none; }
@@ -43,10 +43,17 @@ nav { min-height: 4.5rem; display: flex; align-items: center; justify-content: s
 .btn.ghost:hover { background: var(--raised); border-color: var(--muted); }
 h1, h2, h3, p, figure { margin: 0; }
 h1, h2, h3 { line-height: 1.08; letter-spacing: -.05em; font-weight: 600; }
-h1 { font-size: clamp(2.95rem, 5.25vw, 4.65rem); text-wrap: balance; }
+h1 { font-size: clamp(3.1rem, 5vw, 5.1rem); max-width: 12ch; text-wrap: balance; }
 h2 { font-size: clamp(2.15rem, 4.4vw, 3.6rem); }
 h3 { font-size: 1.25rem; letter-spacing: -.035em; }
-.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 5rem); align-items: center; padding-block: clamp(4.5rem, 8vw, 7.25rem); }
+.hero { display: grid; grid-template-columns: minmax(0, .77fr) minmax(0, 1.23fr); gap: clamp(1.8rem, 4vw, 4.5rem); align-items: center; padding-block: clamp(3rem, 7vw, 6.75rem); }
+.hero-meta { display: flex; align-items: center; justify-content: space-between; gap: .55rem 1rem; flex-wrap: wrap; padding: .65rem .9rem; border-bottom: 1px solid var(--line); color: var(--accent); font: .72rem/1.5 var(--mono); letter-spacing: .045em; }
+.hero-meta span + span { color: var(--muted); }
+.demo { position: relative; min-width: 0; }
+.demo::before, .demo::after { content: ""; position: absolute; width: .75rem; height: .75rem; pointer-events: none; border: 1px solid var(--accent); }
+.demo::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.demo::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+.report-band { border-top-color: var(--line-strong); }
 .tag, .eyebrow, figcaption { font: 500 .78rem/1.55 var(--mono); }
 .tag { display: inline-flex; align-items: center; gap: .55rem; margin-bottom: 1.25rem; color: var(--muted); }
 .tag::before { content: ""; width: .4rem; height: .4rem; background: var(--accent); }
@@ -93,7 +100,10 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
   nav { min-height: 3.8rem; }
   .nav-links .wide { display: none; }
   .hero, .section-intro, .steps, .scope, .myth, .access { grid-template-columns: minmax(0, 1fr); }
-  .hero { gap: 2rem; padding-block: 3.25rem; }
+  .hero { gap: 1.5rem; padding-block: 2.25rem; }
+  h1 { font-size: clamp(2.65rem, 11vw, 4rem); max-width: 15ch; }
+  .hero .lede { margin-block: .8rem 1.15rem; }
+  .hero .tag { margin-bottom: .7rem; }
   .step + .step, .scope > div + div { border-left: 0; border-top: 1px solid var(--line); }
 }
 </style>
@@ -114,21 +124,22 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
   <header class="hero">
     <div>
       <p class="tag">Early prototype · simulation only</p>
-      <h1>Catch robot regressions before they ship.</h1>
-      <p class="lede">Compare controller versions on the same simulation scenarios. See which cases broke and replay each one from your pull request.</p>
+      <h1>See what broke before it reaches the robot.</h1>
+      <p class="lede">Daedro runs the old and new robot software through the same simulated tasks. If the update breaks something, you get the exact case to replay.</p>
       <div class="actions">
         <a class="btn" href="#access">Request early access</a>
         <a class="btn ghost" href="#report">See a real report</a>
       </div>
     </div>
     <figure class="plate demo" aria-labelledby="demo-caption">
+      <div class="hero-meta"><span>SCENARIO 137 / PICK-AND-PLACE</span><span>ORIGINAL VS. UPDATE</span></div>
       <video id="homepage-demo" width="1280" height="720" controls muted playsinline preload="metadata"
         poster="Daedro-demo-poster.jpg" aria-label="Daedro demo: compare two simulated robot arms and replay a failure">
         <source src="Daedro-demo.mp4" type="video/mp4">
         <a href="Daedro-demo.mp4">Download the demo video</a>
       </video>
       <figcaption id="demo-caption">
-        <span>17-second demo · simulation reconstruction</span>
+        <span>22-second demo · stylized reconstruction of a real test case</span>
         <details>
           <summary>Transcript</summary>
           <p>Two simulated Franka Panda arms run the same pick-and-place scenario. The baseline places the part. The proposed controller drops it in transit. Daedro flags seven regressions in the pull request report and provides the command to replay scenario 137.</p>
@@ -137,13 +148,13 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
     </figure>
   </header>
 
-  <section id="report" aria-labelledby="report-h">
+  <section id="report" class="report-band" aria-labelledby="report-h">
     <div class="section-intro">
       <div>
         <p class="eyebrow">Real regression report</p>
-        <h2 id="report-h">A faster pick. A softer grip.</h2>
+        <h2 id="report-h">The report behind the replay.</h2>
       </div>
-      <p class="sub">The proposed controller speeds up the pick cycle and lowers the grip force. Daedro ran it and the baseline on the same seeded scenarios. This is the report that comparison produced.</p>
+      <p class="sub">The update sped up the pick cycle and lowered the grip force. Daedro ran both versions under the same conditions and found seven cases that passed on the original and failed on the update.</p>
     </div>
     <article class="pr" aria-label="Pull request comment">
       <div class="pr-head">{{MARK}}<span><b>daedro</b> commented on <b>faster-softer-grip</b></span></div>
