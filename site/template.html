@@ -3,205 +3,177 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Daedro — Robot controller regression testing</title>
-<meta name="description" content="Catch robot controller regressions in simulation. Compare both versions on identical seeded scenarios and replay failures from your pull request.">
+<meta name="theme-color" content="#080808">
+<meta name="description" content="Daedro compares robot controllers on identical simulation scenarios and gives you a command to replay each regression.">
+<title>Daedro — Regression testing for robot controllers</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  color-scheme: light;
-  --paper: #f6f4f0;
-  --ink: #14120f;
-  --muted: #5e574e;
-  --line: #d8d0c5;
-  --surface: #fffdfa;
-  --inset: #eee9e1;
-  --accent: #8d4818;
-  --bronze: #c8782e;
-  --serif: "Instrument Serif", Georgia, serif;
-  --mono: "IBM Plex Mono", monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --paper: #14120f;
-    --ink: #f6f4f0;
-    --muted: #c2b8aa;
-    --line: #463e34;
-    --surface: #1c1915;
-    --inset: #242019;
-    --accent: #efa568;
-  }
+  color-scheme: dark;
+  --bg: #080808;
+  --surface: #101010;
+  --raised: #151515;
+  --line: #2a2a2a;
+  --line-strong: #434343;
+  --ink: #fafafa;
+  --muted: #aaaab0;
+  --accent: #7edec8;
+  --mono: "Geist Mono", ui-monospace, monospace;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--paper); color: var(--ink); font: 400 1rem/1.65 Geist, system-ui, sans-serif; }
-a { color: inherit; text-underline-offset: .2em; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1rem/1.6 Geist, system-ui, sans-serif; }
+a { color: inherit; text-underline-offset: .22em; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.wrap { width: min(100% - 3rem, 70rem); margin-inline: auto; }
-nav, .brand, .nav-links, .actions, .pr-head { display: flex; align-items: center; }
-nav { justify-content: space-between; gap: 1rem; min-height: 4.5rem; border-bottom: 1px solid var(--line); }
-.brand { gap: .55rem; font-size: 1.35rem; font-weight: 700; letter-spacing: -.05em; text-decoration: none; }
-.brand svg { width: 1.8rem; height: 1.8rem; }
-.nav-links { gap: clamp(1rem, 3vw, 2.25rem); font-size: .875rem; }
-.nav-links a { color: var(--muted); }
-.nav-links a:hover { color: var(--ink); }
-.hero { padding-block: clamp(4.5rem, 11vw, 9rem) clamp(4rem, 8vw, 7rem); }
-.tag, .eyebrow { font: 500 .875rem/1.5 var(--mono); }
-.tag { display: inline-flex; align-items: center; gap: .65rem; padding: .4rem .7rem; border: 1px solid var(--line); border-radius: .35rem; color: var(--muted); }
-.tag::before { content: ""; width: .45rem; height: .45rem; border-radius: 50%; background: var(--bronze); flex: none; }
-h1, h2, h3, p { margin: 0; }
-h1 { max-width: 12ch; margin-block: 1.5rem; font: 400 clamp(3.4rem, 8.4vw, 7.5rem)/.92 var(--serif); letter-spacing: -.025em; }
-.lede { max-width: 54ch; color: var(--muted); font-size: clamp(1.0625rem, 2vw, 1.25rem); }
-.actions { gap: .75rem; flex-wrap: wrap; margin-top: 2rem; }
-.btn { display: inline-flex; justify-content: center; align-items: center; min-height: 2.875rem; padding: .65rem 1rem; border-radius: .4rem; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font: 600 .9375rem/1.4 Geist, system-ui, sans-serif; text-decoration: none; cursor: pointer; }
-.btn:hover { opacity: .86; }
-.btn.ghost { border-color: var(--line); background: var(--surface); color: var(--ink); }
-section { padding-block: clamp(3rem, 7vw, 6rem); border-top: 1px solid var(--line); }
-.section-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: end; gap: 1rem 3rem; margin-bottom: 2rem; }
-.eyebrow { margin-bottom: .6rem; color: var(--accent); }
-h2 { font: 400 clamp(2.55rem, 5vw, 4rem)/1 var(--serif); letter-spacing: -.015em; }
-.sub, .step p, .scope li, .myth p, .formnote { color: var(--muted); }
-.pr { min-width: 0; border: 1px solid var(--line); border-radius: .7rem; background: var(--surface); box-shadow: 0 14px 32px rgba(20, 18, 15, .07); }
-.pr-head { gap: .65rem; padding: .8rem clamp(.85rem, 3vw, 1.5rem); border-bottom: 1px solid var(--line); border-radius: .65rem .65rem 0 0; background: var(--inset); color: var(--muted); font-size: .875rem; overflow-wrap: anywhere; }
-.pr-head svg { width: 1.55rem; height: 1.55rem; flex: none; color: var(--ink); }
+.wrap { width: min(100% - 3rem, 71rem); margin-inline: auto; }
+.top { border-bottom: 1px solid var(--line); }
+nav { min-height: 4.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.brand { display: inline-flex; align-items: center; gap: .65rem; font-size: 1.05rem; font-weight: 700; letter-spacing: .13em; text-decoration: none; }
+.brand svg { width: 1.7rem; height: 1.7rem; flex: none; }
+.nav-links, .actions { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }
+.nav-links { gap: clamp(.75rem, 2.8vw, 2rem); }
+.nav-links > a:not(.btn) { color: var(--muted); text-decoration: none; font-size: .875rem; }
+.nav-links > a:hover { color: var(--ink); }
+.btn { display: inline-flex; justify-content: center; align-items: center; min-height: 2.75rem; padding: .55rem .95rem; border: 1px solid var(--ink); border-radius: 5px; background: var(--ink); color: var(--bg); text-decoration: none; font-size: .875rem; font-weight: 600; }
+.btn:hover { background: #dedede; border-color: #dedede; }
+.nav-links > .btn:hover { color: var(--bg); }
+.btn.ghost { background: var(--surface); border-color: var(--line-strong); color: var(--ink); }
+.btn.ghost:hover { background: var(--raised); border-color: var(--muted); }
+h1, h2, h3, p, figure { margin: 0; }
+h1, h2, h3 { line-height: 1.08; letter-spacing: -.05em; font-weight: 600; }
+h1 { font-size: clamp(2.95rem, 5.25vw, 4.65rem); text-wrap: balance; }
+h2 { font-size: clamp(2.15rem, 4.4vw, 3.6rem); }
+h3 { font-size: 1.25rem; letter-spacing: -.035em; }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 5rem); align-items: center; padding-block: clamp(4.5rem, 8vw, 7.25rem); }
+.tag, .eyebrow, figcaption, .plate-label { font: 500 .78rem/1.55 var(--mono); }
+.tag { display: inline-flex; align-items: center; gap: .55rem; margin-bottom: 1.25rem; color: var(--muted); }
+.tag::before { content: ""; width: .4rem; height: .4rem; background: var(--accent); }
+.lede { max-width: 44ch; margin-block: 1.2rem 1.75rem; font-size: clamp(1rem, 2vw, 1.18rem); color: var(--muted); }
+.plate { min-width: 0; border: 1px solid var(--line); background: #0b0b0b; }
+.plate-label { padding: .7rem .85rem; border-bottom: 1px solid var(--line); color: var(--muted); }
+.diagram svg { display: block; width: 100%; height: auto; }
+.diagram figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .35rem 1rem; padding: .7rem .85rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; }
+section { border-top: 1px solid var(--line); padding-block: clamp(3rem, 7vw, 6rem); }
+.section-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 1rem 3rem; margin-bottom: 1.75rem; }
+.eyebrow { margin-bottom: .65rem; color: var(--accent); }
+.sub, .step p, .scope li, .limit, .myth p, .formnote { color: var(--muted); }
+.sub { max-width: 57ch; }
+.pr { min-width: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.pr-head { display: flex; align-items: center; gap: .65rem; padding: .75rem clamp(.9rem, 3vw, 1.65rem); border-bottom: 1px solid var(--line); border-radius: 5px 5px 0 0; background: var(--raised); color: var(--muted); font-size: .875rem; overflow-wrap: anywhere; }
 .pr-head b { color: var(--ink); }
-.report { max-width: 100%; padding: clamp(.85rem, 3vw, 1.5rem); overflow-x: auto; font-size: .9375rem; overflow-wrap: anywhere; }
-.report h2, .report h3 { margin-bottom: .85rem; font: 600 1.15rem/1.4 Geist, system-ui, sans-serif; letter-spacing: normal; }
-.report p + p, .report table + p { margin-top: .85rem; }
-.report table { display: block; max-width: 100%; overflow-x: auto; margin-block: .55rem 1.15rem; border-collapse: collapse; font-size: .875rem; overflow-wrap: normal; }
+.pr-head svg { width: 1.3rem; height: 1.3rem; flex: none; color: var(--ink); }
+.report { max-width: 100%; padding: clamp(.9rem, 3vw, 1.65rem); overflow-x: auto; font-size: .95rem; overflow-wrap: anywhere; }
+.report h2, .report h3 { margin-bottom: .8rem; font-size: 1.2rem; letter-spacing: -.025em; }
+.report p + p, .report table + p { margin-top: .8rem; }
+.report table { display: block; max-width: 100%; overflow-x: auto; margin-block: .6rem 1.15rem; border-collapse: collapse; font-size: .875rem; overflow-wrap: normal; }
 .report th, .report td { border: 1px solid var(--line); padding: .45rem .65rem; text-align: left; vertical-align: top; }
-.report th { background: var(--inset); }
+.report th { background: var(--raised); }
 .report td code { white-space: nowrap; }
-.report code { padding: .12em .28em; border-radius: .2rem; background: var(--inset); font: .82rem/1.5 var(--mono); }
-.report pre { overflow-x: auto; }
-.report blockquote { margin: 1rem 0 0; padding: .75rem 1rem; border-left: 2px solid var(--bronze); background: var(--inset); }
-.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; margin: 1.75rem 0 0; list-style: none; }
-.step { padding: 1rem 1.25rem 0 0; border-top: 2px solid var(--line); }
-.step + .step { margin-left: 1rem; }
-h3 { margin-bottom: .45rem; font-size: 1.1rem; line-height: 1.35; }
-.scope { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin-top: 1.75rem; border: 1px solid var(--line); border-radius: .65rem; background: var(--line); overflow: hidden; }
-.scope > div { padding: clamp(1rem, 3vw, 1.75rem); background: var(--surface); }
-.scope ul { margin: .65rem 0 0; padding-left: 1.15em; }
-.scope li + li { margin-top: .4rem; }
-.limit { margin-top: 1rem; color: var(--muted); }
-.myth { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 1rem 3rem; align-items: center; }
-.myth h2 { font-style: italic; }
-.access { background: var(--inset); padding: clamp(1.5rem, 5vw, 3.5rem); border: 1px solid var(--line); border-radius: .65rem; }
-.access .sub { max-width: 54ch; margin-block: .8rem 1.25rem; }
-form { display: flex; gap: .65rem; flex-wrap: wrap; max-width: 34rem; }
-label.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-input[type=email] { flex: 1 1 14rem; min-width: 0; padding: .6rem .8rem; border: 1px solid var(--line); border-radius: .4rem; background: var(--surface); color: var(--ink); font: inherit; }
-.formnote, footer { font-size: .875rem; }
-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .45rem 1rem; padding-block: 1.5rem 2.5rem; border-top: 1px solid var(--line); color: var(--muted); }
-@media (max-width: 42rem) {
+.report code { padding: .12em .28em; border-radius: 3px; background: var(--raised); font: .82rem/1.5 var(--mono); }
+.report blockquote { margin: 1rem 0 0; padding: .75rem 1rem; border-left: 2px solid var(--accent); background: var(--raised); }
+.steps, .scope { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; margin: 1.6rem 0 0; list-style: none; border-block: 1px solid var(--line); }
+.step, .scope > div { padding: 1.15rem 1rem; }
+.step + .step, .scope > div + div { border-left: 1px solid var(--line); }
+.step h3 { margin-bottom: .55rem; }
+.scope { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.scope ul { margin: .7rem 0 0; padding-left: 1.1em; }
+.scope li + li { margin-top: .35rem; }
+.limit { margin-top: 1rem; }
+.myth, .access { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 1rem 3rem; }
+.myth h2 { max-width: 16ch; }
+.access { background: var(--surface); border: 1px solid var(--line); padding: clamp(1rem, 5vw, 3rem); border-radius: 6px; }
+.access .sub { margin-bottom: .85rem; }
+footer { border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: .45rem 1rem; padding-block: 1.2rem 2rem; color: var(--muted); font-size: .875rem; }
+@media (max-width: 46rem) {
   .wrap { width: calc(100% - 2rem); }
+  nav { min-height: 3.8rem; }
   .nav-links .wide { display: none; }
-  .section-intro, .steps, .scope, .myth { grid-template-columns: minmax(0, 1fr); }
-  .steps { gap: 1rem; }
-  .step, .step + .step { margin-left: 0; padding-right: 0; }
+  .hero, .section-intro, .steps, .scope, .myth, .access { grid-template-columns: minmax(0, 1fr); }
+  .hero { gap: 2rem; padding-block: 3.25rem; }
+  .step + .step, .scope > div + div { border-left: 0; border-top: 1px solid var(--line); }
 }
 </style>
 </head>
 <body id="top">
-<div class="wrap">
-  <nav aria-label="Main">
-    <a class="brand" href="#top" aria-label="Daedro home">{{MARK}}<span>daedro</span></a>
+<div class="top">
+  <nav class="wrap" aria-label="Main">
+    <a class="brand" href="#top" aria-label="Daedro home">{{MARK}}<span>DAEDRO</span></a>
     <div class="nav-links">
       <a class="wide" href="#report">Demo report</a>
       <a class="wide" href="#how">How it works</a>
-      <a href="#access">Early access</a>
+      <a class="btn" href="#access">Early access</a>
     </div>
   </nav>
+</div>
 
-  <main>
-    <header class="hero">
-      <span class="tag">Early prototype · simulation only</span>
+<main class="wrap">
+  <header class="hero">
+    <div>
+      <p class="tag">Early prototype · simulation only</p>
       <h1>Catch robot regressions before they ship.</h1>
-      <p class="lede">Run your current and proposed controllers through the same seeded simulation scenarios on every pull request. See what broke, which conditions the failures have in common, and how to replay each one.</p>
+      <p class="lede">Compare controller versions on the same simulation scenarios. See which cases broke and replay each one from your pull request.</p>
       <div class="actions">
         <a class="btn" href="#access">Request early access</a>
         <a class="btn ghost" href="#report">See a real report</a>
       </div>
-    </header>
+    </div>
+    <div class="plate">
+      <p class="plate-label">Illustrative simulation trajectories</p>
+      <figure class="diagram"><svg viewBox="0 0 520 321" role="img" aria-label="A reference trajectory and alternate paths travel within a dashed constraint. A highlighted path diverges outside the boundary, where a square marks the saved scenario."><g stroke="#222" stroke-width="1"><path d="M35 19v281 M28 26h458"/><path d="M84 19v281 M28 55h458"/><path d="M133 19v281 M28 84h458"/><path d="M182 19v281 M28 113h458"/><path d="M231 19v281 M28 142h458"/><path d="M280 19v281 M28 171h458"/><path d="M329 19v281 M28 200h458"/><path d="M378 19v281 M28 229h458"/><path d="M427 19v281 M28 258h458"/><path d="M476 19v281 M28 287h458"/></g><path d="M67 63h369v185H67z" stroke="#868686" stroke-dasharray="5 6" fill="none"/><g fill="none" stroke="#68686d" stroke-width="1.2"><path d="M44 222C123 216 157 178 199 155S281 148 321 121 392 100 463 112"/><path d="M44 231C129 220 144 185 200 159S276 153 326 127 402 110 463 118"/><path d="M44 216C128 205 133 173 189 149S279 136 324 114 398 97 463 102"/></g><path d="M44 225C129 217 152 179 199 153S278 144 324 119 400 102 463 108" stroke="#fafafa" stroke-width="2.3" fill="none"/><path d="M44 225C129 217 152 179 199 153S270 142 324 166 396 264 459 270" stroke="#7edec8" stroke-width="2.2" fill="none"/><rect x="408" y="233" width="73" height="56" fill="none" stroke="#7edec8"/><rect x="454" y="265" width="9" height="9" fill="#7edec8"/><g fill="#a1a1aa" font-family="monospace" font-size="12"><text x="73" y="55">DECLARED CONSTRAINT</text><text x="40" y="306">ILLUSTRATIVE WORKSPACE</text><text x="366" y="306">REPLAY SCENARIO</text></g></svg><figcaption><span>Solid · reference / fine · variations</span><span>Dashed · operating envelope</span></figcaption></figure>
+    </div>
+  </header>
 
-    <section id="report" aria-labelledby="report-h">
-      <div class="section-intro">
-        <div>
-          <p class="eyebrow">Demo report</p>
-          <h2 id="report-h">A faster pick. A softer grip.</h2>
-        </div>
-        <p class="sub">The proposed controller speeds up the pick cycle and lowers the grip force. Daedro ran both versions on the same scenarios and produced this pull request comment. Scroll the tables to see all columns.</p>
-      </div>
-      <article class="pr" aria-label="Example pull request comment">
-        <div class="pr-head">{{MARK}}<span><b>daedro</b> commented on <b>faster-softer-grip</b></span></div>
-        <div class="report" role="region" aria-label="Generated regression report" tabindex="0">{{REPORT}}</div>
-      </article>
-    </section>
-
-    <section id="how" aria-labelledby="how-h">
-      <h2 id="how-h">How it works</h2>
-      <ol class="steps" role="list">
-        <li class="step">
-          <h3>Declare your operating envelope</h3>
-          <p>Define the range of conditions your controller should handle, such as part mass and friction.</p>
-        </li>
-        <li class="step">
-          <h3>Open a pull request</h3>
-          <p>The GitHub Action runs both versions of your controller on identical seeded scenarios using the Daedro CLI. Each pair holds the simulation conditions fixed so you can see what the controller change affected.</p>
-        </li>
-        <li class="step">
-          <h3>Replay any failure</h3>
-          <p>Use the report to see where regressions cluster. Copy the one-line command for a scenario to replay it exactly.</p>
-        </li>
-      </ol>
-    </section>
-
-    <section id="today" aria-labelledby="today-h">
-      <h2 id="today-h">Prototype scope</h2>
-      <div class="scope">
-        <div>
-          <h3>Works now</h3>
-          <ul>
-            <li>Franka Panda pick-and-place in MuJoCo.</li>
-            <li>Bring your own Python controller.</li>
-            <li>Seeded comparisons in CI with the Daedro CLI and GitHub Action.</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Not yet</h3>
-          <ul>
-            <li>Camera-based learned policies.</li>
-            <li>Other robots or simulators.</li>
-            <li>Hardware validation.</li>
-          </ul>
-        </div>
-      </div>
-      <p class="limit">Passing in simulation does not guarantee real-world safety.</p>
-    </section>
-
-    <section class="myth" aria-labelledby="myth-h">
+  <section id="report" aria-labelledby="report-h">
+    <div class="section-intro">
       <div>
-        <p class="eyebrow">The name</p>
-        <h2 id="myth-h">“Fly the middle course.”</h2>
+        <p class="eyebrow">Real regression report</p>
+        <h2 id="report-h">A faster pick. A softer grip.</h2>
       </div>
-      <p>Daedro takes its name from Daedalus, the Greek craftsman who built statues that could move. When he made wings for Icarus, he told him to fly between the sea and the sun. We borrowed the idea of giving a machine a range it can work within.</p>
-    </section>
+      <p class="sub">The proposed controller speeds up the pick cycle and lowers the grip force. Daedro ran it and the baseline on the same seeded scenarios. This is the report that comparison produced.</p>
+    </div>
+    <article class="pr" aria-label="Pull request comment">
+      <div class="pr-head">{{MARK}}<span><b>daedro</b> commented on <b>faster-softer-grip</b></span></div>
+      <div class="report" role="region" aria-label="Generated regression report" tabindex="0">{{REPORT}}</div>
+    </article>
+  </section>
 
-    <section id="access" aria-labelledby="access-h">
-      <div class="access">
-        <h2 id="access-h">Request early access</h2>
-        <p class="sub">If your team is working on robot manipulation, we’d like to try Daedro with a controller change you’re making.</p>
-        {{FORM}}
-      </div>
-    </section>
-  </main>
+  <section id="how" aria-labelledby="how-h">
+    <h2 id="how-h">How it works</h2>
+    <ol class="steps" role="list">
+      <li class="step"><h3>Define the conditions</h3><p>Declare the range of part mass, friction, and other conditions your controller should handle.</p></li>
+      <li class="step"><h3>Open a pull request</h3><p>The GitHub Action uses the Daedro CLI to test both versions with the same inputs and seeds.</p></li>
+      <li class="step"><h3>Replay a failure</h3><p>See which conditions failures have in common, then copy the one-line command to replay a specific case.</p></li>
+    </ol>
+  </section>
 
-  <footer>
-    <span>© 2026 Daedro · an early prototype</span>
-    <span>Simulation results are not hardware validation.</span>
-  </footer>
-</div>
+  <section id="today" aria-labelledby="today-h">
+    <h2 id="today-h">Prototype scope</h2>
+    <div class="scope">
+      <div><h3>Works now</h3><ul><li>Franka Panda pick-and-place in MuJoCo</li><li>Bring your own Python controller</li><li>Seeded comparisons via the CLI and GitHub Action</li></ul></div>
+      <div><h3>Not yet</h3><ul><li>Camera-based learned policies</li><li>Other robots or simulators</li><li>Hardware validation</li></ul></div>
+    </div>
+    <p class="limit">Passing in simulation does not guarantee real-world safety.</p>
+  </section>
+
+  <section class="myth" aria-labelledby="myth-h">
+    <div><p class="eyebrow">The name</p><h2 id="myth-h">“Fly the middle course.”</h2></div>
+    <p>Daedro takes its name from Daedalus, the Greek craftsman who built moving statues. His advice to Icarus was to fly between the sea and the sun. We took that idea into testing by asking what range of conditions a controller can handle.</p>
+  </section>
+
+  <section id="access" aria-labelledby="access-h">
+    <div class="access">
+      <h2 id="access-h">Request early access</h2>
+      <div><p class="sub">If your team works on robot manipulation, tell us how you test controller changes. We’d like to try Daedro on a real case with you.</p>
+      {{FORM}}</div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <span>© 2026 Daedro · an early prototype</span>
+  <span>Simulation results are not hardware validation.</span>
+</footer>
 </body>
 </html>
