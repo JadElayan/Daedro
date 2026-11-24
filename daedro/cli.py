@@ -45,7 +45,8 @@ def _repro(a) -> int:
         print(f"scenario must be in 0..{len(scenarios) - 1}", file=sys.stderr)
         return 2
     seed, params = scenarios[a.scenario]
-    r = run_episode(params, seed, controller=ctrl).to_dict()
+    from .plugin import PluginSpec, run_plugin_episode
+    r = run_plugin_episode(params, seed, ctrl) if isinstance(ctrl, PluginSpec) else run_episode(params, seed, controller=ctrl).to_dict()
     print(json.dumps({"scenario": a.scenario, "params": params.__dict__, "seed": seed, "result": r}, indent=1))
     return 0
 
@@ -66,23 +67,25 @@ def _ci(a) -> int:
     import subprocess
     import tempfile
     try:
-        base_text = subprocess.check_output(["git", "show", f"{a.base_ref}:{a.config}"], text=True, stderr=subprocess.PIPE)
-    except subprocess.CalledProcessError as e:
+        subprocess.check_output(["git", "cat-file", "-e", f"{a.base_ref}:{a.config}"], stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError:
         msg = (f"## Daedro\n\n`{a.config}` does not exist on `{a.base_ref}` yet, so there is no baseline to compare "
                f"against. Merge this PR to set the baseline; later PRs will be compared to it.")
         open(a.report, "w").write(msg + "\n")
         print(msg)
         return 0
-    with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as f:
-        f.write(base_text)
-        base_path = f.name
+    # Check out the whole base ref in a temporary worktree, so a custom controller module
+    # (and anything it imports) is compared as it is on the base branch, not just the toml.
+    tmp = tempfile.mkdtemp(prefix="daedro-base-")
+    subprocess.check_call(["git", "worktree", "add", "--detach", "-q", tmp, a.base_ref])
+    base_path = os.path.join(tmp, a.config)
     try:
         ns = argparse.Namespace(base=base_path, head=a.config, base_label=a.base_ref.split("/")[-1],
                                 head_label=a.head_label, report=a.report, json=a.json, fail_on=a.fail_on,
                                 workers=a.workers)
         return _compare(ns)
     finally:
-        os.unlink(base_path)
+        subprocess.call(["git", "worktree", "remove", "--force", tmp])
 
 
 def main(argv=None) -> int:

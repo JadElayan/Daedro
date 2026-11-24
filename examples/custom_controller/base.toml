@@ -1,0 +1,14 @@
+# Team-owned controller, as on main.
+[controller]
+module = "pick.py"
+class = "WaypointPick"
+
+[suite]
+n = 120
+seed = 7
+
+[suite.envelope]
+friction  = [0.3, 1.2, "log"]
+mass      = [0.05, 0.8, "log"]
+half_size = [0.01, 0.035]       # 2 to 7 cm parts
+ik_noise  = [0.0, 0.005]

@@ -1,0 +1,15 @@
+# Live demo for the GitHub Action: open a PR that edits demo/pick.py and Daedro
+# comments with a paired regression report against main.
+[controller]
+module = "pick.py"
+class = "WaypointPick"
+
+[suite]
+n = 80
+seed = 11
+
+[suite.envelope]
+friction  = [0.3, 1.2, "log"]
+mass      = [0.05, 0.8, "log"]
+half_size = [0.01, 0.035]
+ik_noise  = [0.0, 0.005]

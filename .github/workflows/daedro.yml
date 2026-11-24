@@ -1,0 +1,16 @@
+name: Daedro
+on:
+  pull_request:
+    paths: ["demo/**", "daedro/**", "action.yml"]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  regression-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./            # this repo's own action
+        with:
+          config: demo/daedro.toml
+          fail-on: "0"

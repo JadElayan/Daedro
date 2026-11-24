@@ -16,13 +16,14 @@ import mujoco
 
 from .config import Suite
 from .episode import ControllerConfig, run_episode
+from .plugin import PluginSpec, run_plugin_episode
 from .sampling import NAMES, sample
 from .scene import menagerie_panda_path
 
 
 def _run(job):
     idx, seed, params, ctrl = job
-    r = run_episode(params, seed, controller=ctrl).to_dict()
+    r = run_plugin_episode(params, seed, ctrl) if isinstance(ctrl, PluginSpec) else run_episode(params, seed, controller=ctrl).to_dict()
     r["scenario"] = idx
     return r
 
@@ -154,7 +155,8 @@ def render_markdown(cmp: Comparison, base_label: str, head_label: str, head_conf
            f"Paired on identical scenarios: **{len(regs)} regressed**, **{len(fixes)} fixed**, "
            f"{n - len(regs) - len(fixes)} unchanged. Exact McNemar p = {p:.3g}.", ""]
 
-    diff = {k: (v, cmp.head_cfg.to_dict()[k]) for k, v in cmp.base_cfg.to_dict().items() if cmp.head_cfg.to_dict()[k] != v}
+    bd, hd = cmp.base_cfg.to_dict(), cmp.head_cfg.to_dict()
+    diff = {k: (bd.get(k, "—"), hd.get(k, "—")) for k in dict.fromkeys([*bd, *hd]) if bd.get(k) != hd.get(k)}
     if diff:
         out += ["**What changed in the controller**", "", "| Parameter | Base | Head |", "|---|---|---|"]
         out += [f"| `{k}` | {a} | {b} |" for k, (a, b) in diff.items()] + [""]
@@ -162,7 +164,7 @@ def render_markdown(cmp: Comparison, base_label: str, head_label: str, head_conf
     from collections import Counter
     cb, ch = Counter(r["outcome"] for r in cmp.base), Counter(r["outcome"] for r in cmp.head)
     out += ["**Outcomes**", "", "| Outcome | Base | Head | Δ |", "|---|---|---|---|"]
-    for o in ("success", "grasp_miss", "slip_on_lift", "drop_in_transit", "misplaced"):
+    for o in ("success", "grasp_miss", "slip_on_lift", "drop_in_transit", "never_lifted", "dropped", "misplaced", "controller_error"):
         if cb[o] or ch[o]:
             out.append(f"| {o} | {cb[o]} | {ch[o]} | {ch[o] - cb[o]:+d} |")
     out.append("")

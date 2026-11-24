@@ -39,3 +39,8 @@ python site/build.py                             # landing page -> site/dist/
 - `action.yml`: composite GitHub Action (pins the Menagerie commit, posts one sticky PR comment). Not yet run on GitHub.
 - `examples/workflow/daedro.yml`: workflow to copy into a team's repo.
 - `brand/`: logo mark and favicon.
+
+## Bring your own controller
+Point `daedro.toml` at a Python class in your repo (`reset(obs)` and `act(obs)` returning a TCP or joint target plus a gripper command); see `daedro/plugin.py` for the interface and `examples/custom_controller/` for a working example. In CI, `daedro ci` checks out the base branch in a temporary worktree, so a change to the controller *code* is compared, not just the config.
+
+Live demo: `demo/` + `.github/workflows/daedro.yml`. Open a PR that edits `demo/pick.py` and the Action comments a report.
