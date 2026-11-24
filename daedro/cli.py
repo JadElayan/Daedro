@@ -25,12 +25,18 @@ def _compare(a) -> int:
         print("note: [suite] differs between base and head; using the head suite for both so scenarios stay paired.",
               file=sys.stderr)
     cmp = compare(base_ctrl, head_ctrl, head_suite, a.workers)
-    videos = []
+    videos, video_error = [], None
     if getattr(a, "videos", None) and cmp.regressions:
-        from .video import render_previews
-        videos = render_previews(cmp, a.base_label, a.head_label, a.videos, a.max_videos)
+        try:  # videos are a bonus; never let them cost the team the report or the gate
+            from .video import render_previews
+            videos = render_previews(cmp, a.base_label, a.head_label, a.videos, a.max_videos)
+        except Exception as e:
+            video_error = f"{type(e).__name__}: {e}"
+            print(f"daedro: videos skipped ({video_error})", file=sys.stderr)
     md = render_markdown(cmp, a.base_label, a.head_label, a.head, videos=videos,
                          videos_url=getattr(a, "videos_url", None))
+    if video_error:
+        md = md.replace("<details markdown=", f"🎬 Videos unavailable for this run (`{video_error}`).\n\n<details markdown=", 1)
     if a.report:
         open(a.report, "w").write(md + "\n")
     else:
