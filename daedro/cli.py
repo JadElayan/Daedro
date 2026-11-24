@@ -15,6 +15,7 @@ from . import config as cfgmod
 from .compare import compare, render_markdown, run_suite
 from .episode import run_episode
 from .sampling import sample
+from .scene import SceneParams
 
 
 def _compare(a) -> int:
@@ -36,7 +37,7 @@ def _compare(a) -> int:
         print(md)
     if a.json:
         json.dump(cmp.to_json(), open(a.json, "w"), indent=1)
-    n_reg = len(cmp.regressions)
+    n_reg = len(cmp.regressions) + len(cmp.pinned_regressions())
     if a.fail_on is not None and n_reg > a.fail_on:
         print(f"daedro: {n_reg} regressions > --fail-on {a.fail_on}", file=sys.stderr)
         return 1
@@ -53,6 +54,35 @@ def _repro(a) -> int:
     from .plugin import PluginSpec, run_plugin_episode
     r = run_plugin_episode(params, seed, ctrl) if isinstance(ctrl, PluginSpec) else run_episode(params, seed, controller=ctrl).to_dict()
     print(json.dumps({"scenario": a.scenario, "params": params.__dict__, "seed": seed, "result": r}, indent=1))
+    return 0
+
+
+def _pin(a) -> int:
+    """Pin a failing scenario (from a sim run, or conditions measured on a real robot) as a permanent test."""
+    import datetime
+    from . import failures as failmod
+    ctrl, suite = cfgmod.load(a.config)
+    if a.field:
+        need = {"friction": a.friction, "mass": a.mass, "half_size": a.half_size}
+        missing = [k for k, v in need.items() if v is None]
+        if missing:
+            print(f"--field needs {', '.join('--' + m.replace('_', '-') for m in missing)}", file=sys.stderr)
+            return 2
+        seed, params = a.seed or 0, SceneParams(a.friction, a.mass, a.half_size, a.ik_noise or 0.0)
+        source = f"field: {a.field}"
+    else:
+        if a.scenario is None:
+            print("give --scenario N (from a report) or --field DESCRIPTION", file=sys.stderr)
+            return 2
+        seed, params = sample(suite.method, suite.n, suite.seed, suite.space())[a.scenario]
+        source = a.source or f"sim: scenario {a.scenario} (suite seed {suite.seed})"
+    fid = a.id or failmod.slug(a.note or (a.field if a.field else f"scenario-{a.scenario}"))
+    entry = failmod.Pinned(fid, int(seed), params.friction, params.mass, params.half_size, params.ik_noise,
+                           source, a.note or "", datetime.date.today().isoformat())
+    failmod.append(suite.failures_file, entry)
+    from .plugin import PluginSpec, run_plugin_episode
+    r = run_plugin_episode(params, seed, ctrl) if isinstance(ctrl, PluginSpec) else run_episode(params, seed, controller=ctrl).to_dict()
+    print(f"pinned {fid!r} -> {suite.failures_file}  (currently: {r['outcome']} with this config)")
     return 0
 
 
@@ -117,6 +147,14 @@ def main(argv=None) -> int:
     c.add_argument("--max-videos", type=int, default=3)
     c.add_argument("--videos-url", help="where the videos will be viewable (linked from the report)")
     c.set_defaults(fn=_compare)
+    pn = sub.add_parser("pin", help="pin a failure as a permanent regression test")
+    pn.add_argument("--config", required=True)
+    pn.add_argument("--scenario", type=int, help="scenario number from a report")
+    pn.add_argument("--field", help="describe a real-robot failure, e.g. 'cell 3, 2026-11-20'")
+    pn.add_argument("--friction", type=float); pn.add_argument("--mass", type=float)
+    pn.add_argument("--half-size", type=float); pn.add_argument("--ik-noise", type=float)
+    pn.add_argument("--seed", type=int); pn.add_argument("--id"); pn.add_argument("--note"); pn.add_argument("--source")
+    pn.set_defaults(fn=_pin)
     pv = sub.add_parser("preview", help="film one scenario: base and head side by side")
     pv.add_argument("--base", required=True); pv.add_argument("--head", required=True)
     pv.add_argument("--scenario", type=int, required=True); pv.add_argument("--out", required=True)

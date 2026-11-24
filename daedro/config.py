@@ -18,6 +18,7 @@ import tomllib
 from dataclasses import dataclass, fields
 from pathlib import Path
 
+from . import failures as failmod
 from .episode import ControllerConfig
 from .plugin import PluginSpec
 from .sampling import NAMES, PARAM_SPACE
@@ -29,6 +30,8 @@ class Suite:
     n: int = 200
     seed: int = 2026
     envelope: tuple = tuple(sorted(PARAM_SPACE.items()))
+    pinned: tuple = ()  # failures.Pinned entries from the failure library
+    failures_file: str = ""
 
     def space(self) -> dict:
         return dict(self.envelope)
@@ -69,5 +72,6 @@ def _suite(raw: dict, path) -> Suite:
         if not (dlo <= lo < hi <= dhi):
             raise ValueError(f"{path}: envelope {k}=[{lo},{hi}] must lie within the supported range [{dlo},{dhi}]")
         env[k] = (lo, hi, kind)
+    lib = failmod.library_path(path, s)
     return Suite(method=s.get("method", "lhs"), n=int(s.get("n", 200)), seed=int(s.get("seed", 2026)),
-                 envelope=tuple(sorted(env.items())))
+                 envelope=tuple(sorted(env.items())), pinned=failmod.load(lib), failures_file=str(lib))

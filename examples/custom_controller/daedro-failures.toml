@@ -1,0 +1,24 @@
+# Daedro failure library: confirmed failures, re-run on every comparison.
+# Add with `daedro pin`; remove an entry only when the behaviour it covers is retired.
+
+[[failure]]
+id = "small-part-early-close"
+seed = 1497082228
+friction = 0.388652
+mass = 0.79234
+half_size = 0.0107301
+ik_noise = 0.000480881
+source = "sim: found by Daedro on PR #1 (scenario 32)"
+note = "2 cm part: gripper must not close before it reaches the part"
+added = "2026-11-24"
+
+[[failure]]
+id = "field-cell3-slippery"
+seed = 0
+friction = 0.35
+mass = 0.6
+half_size = 0.012
+ik_noise = 0
+source = "field: cell 3, 2026-11-20 (example)"
+note = "example field report: slippery 2.4 cm bracket dropped"
+added = "2026-11-24"

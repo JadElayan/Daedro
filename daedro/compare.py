@@ -34,6 +34,14 @@ def run_suite(ctrl: ControllerConfig, suite: Suite, workers: int = 4) -> list[di
         return pool.map(_run, jobs, chunksize=4)
 
 
+def run_pinned(ctrl, suite: Suite, workers: int = 4) -> list[dict]:
+    jobs = [(f.id, f.seed, f.params, ctrl) for f in suite.pinned]
+    if not jobs:
+        return []
+    with Pool(min(workers, len(jobs))) as pool:
+        return pool.map(_run, jobs)
+
+
 def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
     if n == 0:
         return (0.0, 1.0)
@@ -61,6 +69,11 @@ class Comparison:
     suite: Suite
     base: list[dict]
     head: list[dict]
+    pinned_base: list = None
+    pinned_head: list = None
+
+    def pinned_regressions(self) -> list[tuple[dict, dict]]:
+        return [(b, h) for b, h in zip(self.pinned_base or [], self.pinned_head or []) if b["success"] and not h["success"]]
 
     @property
     def regressions(self) -> list[tuple[dict, dict]]:
@@ -80,6 +93,7 @@ class Comparison:
             "base_config": self.base_cfg.to_dict(), "head_config": self.head_cfg.to_dict(),
             "base_success_rate": sr(self.base), "head_success_rate": sr(self.head),
             "regressions": [h["scenario"] for _, h in self.regressions],
+            "pinned_regressions": [h["scenario"] for _, h in self.pinned_regressions()],
             "fixes": [h["scenario"] for _, h in self.fixes],
             "mcnemar_p": self.p_value(),
             "environment": environment(),
@@ -87,7 +101,8 @@ class Comparison:
 
 
 def compare(base_cfg: ControllerConfig, head_cfg: ControllerConfig, suite: Suite, workers: int = 4) -> Comparison:
-    return Comparison(base_cfg, head_cfg, suite, run_suite(base_cfg, suite, workers), run_suite(head_cfg, suite, workers))
+    return Comparison(base_cfg, head_cfg, suite, run_suite(base_cfg, suite, workers), run_suite(head_cfg, suite, workers),
+                      run_pinned(base_cfg, suite, workers), run_pinned(head_cfg, suite, workers))
 
 
 def environment() -> dict:
@@ -132,6 +147,31 @@ def _clusters(cmp: Comparison, bins: int = 4) -> list[str]:
     return [l for _, l in lines]
 
 
+def _pinned_section(cmp: Comparison, base_label: str, head_label: str) -> list[str]:
+    if not cmp.suite.pinned:
+        return []
+    by_id = {f.id: f for f in cmp.suite.pinned}
+    space = cmp.suite.space()
+    rows = []
+    for b, h in zip(cmp.pinned_base, cmp.pinned_head):
+        f = by_id[h["scenario"]]
+        if b["success"] and not h["success"]:
+            status = "🔴 came back"
+        elif not b["success"] and h["success"]:
+            status = "✅ fixed"
+        elif h["success"]:
+            status = "✓ holding"
+        else:
+            status = "⚠️ still failing"
+        outside = any(not (space[k][0] <= getattr(f, k) <= space[k][1]) for k in ("friction", "mass", "half_size", "ik_noise"))
+        cond = _fmt_params(h) + (" · *outside envelope*" if outside else "")
+        rows.append(f"| `{f.id}` | {status} | {b['outcome']} → {h['outcome']} | {cond} | {f.source or '—'} |")
+    held = sum(1 for _, h in zip(cmp.pinned_base, cmp.pinned_head) if h["success"])
+    return [f"**Failure library** ({held}/{len(rows)} pinned failures pass on `{head_label}`)", "",
+            "| Pinned failure | Status | Outcome (base → head) | Conditions | Source |", "|---|---|---|---|---|",
+            *rows, ""]
+
+
 def render_markdown(cmp: Comparison, base_label: str, head_label: str, head_config_path: str, max_rows: int = 10,
                     videos: list | None = None, videos_url: str | None = None) -> str:
     n = cmp.suite.n
@@ -148,6 +188,10 @@ def render_markdown(cmp: Comparison, base_label: str, head_label: str, head_conf
                    f"significant (p={p:.2g}); inspect the regressions below.")
     else:
         verdict = f"🟢 **No regressions** across {n} paired scenarios."
+    preg = cmp.pinned_regressions()
+    if preg:
+        verdict = (f"🔴 **A known failure came back.** {len(preg)} pinned failure(s) from the failure library pass on "
+                   f"`{base_label}` but fail on `{head_label}`.\n\n" + verdict)
 
     out = [f"## Daedro regression report: `{base_label}` → `{head_label}`", "", verdict, "",
            "| | Success rate | 95% CI |", "|---|---|---|",
@@ -155,6 +199,8 @@ def render_markdown(cmp: Comparison, base_label: str, head_label: str, head_conf
            f"| `{head_label}` (head) | {kh}/{n} = {kh / n:.1%} | {lh:.1%}–{uh:.1%} |", "",
            f"Paired on identical scenarios: **{len(regs)} regressed**, **{len(fixes)} fixed**, "
            f"{n - len(regs) - len(fixes)} unchanged. Exact McNemar p = {p:.3g}.", ""]
+
+    out += _pinned_section(cmp, base_label, head_label)
 
     bd, hd = cmp.base_cfg.to_dict(), cmp.head_cfg.to_dict()
     diff = {k: (bd.get(k, "—"), hd.get(k, "—")) for k in dict.fromkeys([*bd, *hd]) if bd.get(k) != hd.get(k)}
