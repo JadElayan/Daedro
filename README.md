@@ -44,3 +44,15 @@ python site/build.py                             # landing page -> site/dist/
 Point `daedro.toml` at a Python class in your repo (`reset(obs)` and `act(obs)` returning a TCP or joint target plus a gripper command); see `daedro/plugin.py` for the interface and `examples/custom_controller/` for a working example. In CI, `daedro ci` checks out the base branch in a temporary worktree, so a change to the controller *code* is compared, not just the config.
 
 Live demo: `demo/` + `.github/workflows/daedro.yml`. Open a PR that edits `demo/pick.py` and the Action comments a report.
+
+## Video previews
+`daedro compare ... --videos preview/` (or `daedro preview --scenario N`) films each regressed scenario for base and head side by side (MP4 + `index.html`). The Action uploads them as the `daedro-preview` artifact and links it from the PR comment. Needs `ffmpeg`; on headless Linux, Mesa EGL (`apt install libegl1 libgl1`).
+
+## Failure library
+`daedro pin --config daedro.toml --scenario N` (a sim failure) or `--field "where/when" --friction .. --mass .. --half-size ..` (a real-robot failure) appends to `daedro-failures.toml`. Every comparison re-runs all pinned failures and flags any that come back.
+
+## Vision policies
+Add `cameras = ["front", "wrist"]` (optional `camera_hz`, `image_size`) to `[controller]`; the policy receives `obs["images"]`.
+
+## Roadmap
+`docs/design_staged_rollouts.md`: how the simulation gate extends to canary → fleet rollouts with automatic rollback (design only, built with the first team that ships to real robots).
