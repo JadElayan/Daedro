@@ -13,7 +13,6 @@ import json
 import platform
 import subprocess
 import time
-from multiprocessing import Pool
 from pathlib import Path
 
 import mujoco
@@ -21,6 +20,13 @@ import mujoco
 from .episode import run_episode
 from .sampling import PARAM_SPACE, sample
 from .scene import menagerie_panda_path
+
+
+def _pool(n):
+    """Worker pool that never forks a process holding rendering (EGL) threads."""
+    import multiprocessing as mp
+    ctx = mp.get_context("forkserver" if "forkserver" in mp.get_all_start_methods() else "spawn")
+    return ctx.Pool(n)
 
 
 def _menagerie_commit() -> str:
@@ -40,7 +46,7 @@ def _run(args):
 def run_campaign(method: str, n: int, seed: int, grip_force_n: float | None = 70.0, workers: int = 4) -> dict:
     jobs = [(s, p, grip_force_n) for s, p in sample(method, n, seed)]
     t0 = time.time()
-    with Pool(workers) as pool:
+    with _pool(workers) as pool:
         rows = pool.map(_run, jobs, chunksize=8)  # map preserves order -> deterministic file
     digest = hashlib.sha256("\n".join(json.dumps(r, sort_keys=True) for r in rows).encode()).hexdigest()
     meta = {

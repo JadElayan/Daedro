@@ -65,3 +65,13 @@ Add `cameras = ["front", "wrist"]` (optional `camera_hz`, `image_size`) to `[con
 
 ## Plan
 `docs/game_plan.md`: the next six weeks.
+
+## Cases: from a real incident to a proven fix
+```bash
+daedro case new --recording cell2.mcap --cases-dir cases          # find the incident, clip, timeline, context
+daedro case reproduce --case cases/<id> --config current.toml     # does simulation recreate it?
+daedro case test --case cases/<id> --base current.toml --head fix.toml --pin daedro-failures.toml
+daedro case evidence --case cases/<id> --kind hardware --result pass --note "supervised trial"
+daedro case evidence --case cases/<id> --kind outcome --result improved --note "first week after rollout"
+```
+Recordings are MCAP (the Foxglove / ROS 2 format) with JSON channels; see `daedro/recording.py` for the channels Daedro reads. `daedro record` writes example recordings from simulation, clearly marked as such. A recording supports investigation only; a fix counts as "verified in simulation" only when simulation reproduced the incident. Example: `examples/cases/` (an example incident, not customer data).

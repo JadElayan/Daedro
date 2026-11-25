@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from multiprocessing import Pool
 
 import mujoco
 
@@ -19,6 +18,13 @@ from .episode import ControllerConfig, run_episode
 from .plugin import PluginSpec, run_plugin_episode
 from .sampling import NAMES, sample
 from .scene import menagerie_panda_path
+
+
+def _pool(n):
+    """Worker pool that never forks a process holding rendering (EGL) threads."""
+    import multiprocessing as mp
+    ctx = mp.get_context("forkserver" if "forkserver" in mp.get_all_start_methods() else "spawn")
+    return ctx.Pool(n)
 
 
 def _run(job):
@@ -40,7 +46,7 @@ def run_any(params, seed, ctrl, recorder=None) -> dict:
 
 def run_suite(ctrl: ControllerConfig, suite: Suite, workers: int = 4) -> list[dict]:
     jobs = [(i, s, p, ctrl) for i, (s, p) in enumerate(sample(suite.method, suite.n, suite.seed, suite.space()))]
-    with Pool(workers) as pool:
+    with _pool(workers) as pool:
         return pool.map(_run, jobs, chunksize=4)
 
 
@@ -48,7 +54,7 @@ def run_pinned(ctrl, suite: Suite, workers: int = 4) -> list[dict]:
     jobs = [(f.id, f.seed, f.params, ctrl) for f in suite.pinned]
     if not jobs:
         return []
-    with Pool(min(workers, len(jobs))) as pool:
+    with _pool(min(workers, len(jobs))) as pool:
         return pool.map(_run, jobs)
 
 

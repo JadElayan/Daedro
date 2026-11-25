@@ -1,0 +1,13 @@
+# Daedro failure library: confirmed failures, re-run on every comparison.
+# Add with `daedro pin`; remove an entry only when the behaviour it covers is retired.
+
+[[failure]]
+id = "b2-bracket-drop"
+seed = 1358308534
+friction = 0.274
+mass = 0.9285
+half_size = 0.02818
+ik_noise = 0.00318
+source = "case: Dropped steel bracket mid-transport, Site B cell 2"
+note = "The part was lifted to 17 cm, then fell 24 cm from the target."
+added = "2026-11-25"

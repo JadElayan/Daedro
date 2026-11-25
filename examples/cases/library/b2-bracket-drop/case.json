@@ -1,0 +1,70 @@
+{
+ "id": "b2-bracket-drop",
+ "title": "Dropped steel bracket mid-transport, Site B cell 2",
+ "created": "2026-11-25T19:21:40+00:00",
+ "source": {
+  "recording": "cell-b2_2026-11-20_shift2_pick-0417.mcap",
+  "sha256": "03bdd5e5d167b49bcab954c6656b63f231cb25fcda2659f076fbf7348c1cfb89",
+  "origin": "simulation (example)",
+  "recorded_at": "2026-11-25T19:19:05Z"
+ },
+ "context": {
+  "cell": "Site B \u00b7 cell 2 (example)",
+  "robot": "franka_panda",
+  "gripper": "parallel jaw, 40 N",
+  "software_version": "pick-cycle v2.5",
+  "part": "steel bracket (example)"
+ },
+ "incident": {
+  "t": 3.4,
+  "kind": "dropped",
+  "description": "The part was lifted to 17 cm, then fell 24 cm from the target."
+ },
+ "conditions": {
+  "friction": 0.274,
+  "mass": 0.9285,
+  "half_size": 0.02818,
+  "ik_noise": 0.00318,
+  "seed": 1358308534
+ },
+ "clip": "clip.mp4",
+ "evidence": [
+  {
+   "kind": "recording",
+   "at": "2026-11-25T19:21:40+00:00",
+   "summary": "The part was lifted to 17 cm, then fell 24 cm from the target.",
+   "note": "Shows what happened. It cannot show what a changed controller would have done."
+  },
+  {
+   "kind": "reproduction",
+   "at": "2026-11-25T19:21:42+00:00",
+   "config": "v2.5.toml",
+   "reproduced": true,
+   "exact_outcome": "drop_in_transit",
+   "variations": 20,
+   "variations_failed": 18,
+   "variations_same_mode": 7,
+   "summary": "Simulation reproduced the incident at the recorded conditions (drop_in_transit). Nearby variations: 18 of 20 fail (slip_on_lift 9, drop_in_transit 7, success 2, misplaced 2)."
+  },
+  {
+   "kind": "fix_test",
+   "at": "2026-11-25T19:21:47+00:00",
+   "base": "v2.5.toml",
+   "head": "v2.5.1.toml",
+   "verified": true,
+   "exact": {
+    "base": "drop_in_transit",
+    "head": "success"
+   },
+   "variations": 21,
+   "resolved": 19,
+   "still_failing": 0,
+   "newly_broken": 0,
+   "base_success": 2,
+   "head_success": 21,
+   "summary": "v2.5.1.toml: the recorded incident is fixed (drop_in_transit \u2192 success). Across 21 runs: 19 resolved, 0 still failing, 0 newly broken.",
+   "pinned_to": "examples/cases/daedro-failures.toml"
+  }
+ ],
+ "status": "fix verified (simulation)"
+}

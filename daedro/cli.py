@@ -110,6 +110,40 @@ def _approve(a) -> int:
     return 0
 
 
+def _case(a) -> int:
+    from . import case as cm
+    if a.case_cmd == "new":
+        cond = {k: v for k, v in (("friction", a.friction), ("mass", a.mass), ("half_size", a.half_size),
+                                  ("seed", a.seed)) if v is not None}
+        d = cm.new_case(a.recording, a.cases_dir, a.id, a.title, cond or None)
+        cm.render_library(a.cases_dir)
+        c = json.loads((d / "case.json").read_text())
+        print(f"case {c['id']}: {c['incident']['description']} (at {c['incident']['t']} s) -> {d}/index.html")
+    elif a.case_cmd == "reproduce":
+        print(cm.reproduce(a.case, a.config, a.n, a.workers)["summary"])
+    elif a.case_cmd == "test":
+        ev = cm.test_fix(a.case, a.base, a.head, a.n, a.workers, a.pin)
+        print(ev["summary"] + (" Verified in simulation." if ev["verified"] else ""))
+        return 0 if ev["verified"] or not a.fail_unverified else 1
+    elif a.case_cmd == "evidence":
+        cm.add_evidence(a.case, a.kind, a.result, a.note, a.by or "")
+        print(f"recorded {a.kind} evidence")
+    if a.case_cmd != "new":
+        from pathlib import Path
+        cm.render_library(Path(a.case).resolve().parent)
+    return 0
+
+
+def _record(a) -> int:
+    from .recording import record_episode
+    ctrl, suite = cfgmod.load(a.config)
+    seed, params = sample(suite.method, suite.n, suite.seed, suite.space())[a.scenario]
+    path, r = record_episode(params, seed, ctrl, a.out, cell=a.cell, software_version=a.software,
+                             gripper=a.gripper, part=a.part)
+    print(f"{path} ({r['outcome']}); source marked 'simulation (example)'")
+    return 0
+
+
 def _preview(a) -> int:
     from .video import render_scenario
     base_ctrl, _ = cfgmod.load(a.base)
@@ -189,6 +223,32 @@ def main(argv=None) -> int:
     ap_.add_argument("--by", required=True); ap_.add_argument("--setup", action="append", required=True)
     ap_.add_argument("--note"); ap_.add_argument("--handoff", help="where the update went, e.g. 'fleet tool, ticket 123'")
     ap_.set_defaults(fn=_approve)
+    cs = sub.add_parser("case", help="turn a robot incident into a case: investigate, test fixes, record evidence")
+    csub = cs.add_subparsers(dest="case_cmd", required=True)
+    c1 = csub.add_parser("new", help="create a case from an MCAP recording")
+    c1.add_argument("--recording", required=True); c1.add_argument("--cases-dir", default="cases")
+    c1.add_argument("--id"); c1.add_argument("--title")
+    for k in ("friction", "mass", "half-size"):
+        c1.add_argument(f"--{k}", type=float, help="override if the recording lacks it")
+    c1.add_argument("--seed", type=int)
+    c2 = csub.add_parser("reproduce", help="does simulation recreate the incident?")
+    c2.add_argument("--case", required=True); c2.add_argument("--config", required=True)
+    c2.add_argument("--n", type=int, default=20); c2.add_argument("--workers", type=int, default=4)
+    c3 = csub.add_parser("test", help="test a proposed fix against the case and nearby variations")
+    c3.add_argument("--case", required=True); c3.add_argument("--base", required=True); c3.add_argument("--head", required=True)
+    c3.add_argument("--n", type=int, default=20); c3.add_argument("--workers", type=int, default=4)
+    c3.add_argument("--pin", help="also add the case to this failure library (daedro-failures.toml)")
+    c3.add_argument("--fail-unverified", action="store_true", help="exit 1 unless the fix is verified in simulation")
+    c4 = csub.add_parser("evidence", help="record a supervised hardware test or a post-rollout outcome")
+    c4.add_argument("--case", required=True); c4.add_argument("--kind", choices=["hardware", "outcome"], required=True)
+    c4.add_argument("--result", required=True); c4.add_argument("--note", required=True); c4.add_argument("--by")
+    cs.set_defaults(fn=_case)
+    rc_ = sub.add_parser("record", help="save a simulated episode as an MCAP recording (example data)")
+    rc_.add_argument("--config", required=True); rc_.add_argument("--scenario", type=int, required=True)
+    rc_.add_argument("--out", required=True); rc_.add_argument("--cell", default="example cell")
+    rc_.add_argument("--software", default="unknown"); rc_.add_argument("--gripper", default="")
+    rc_.add_argument("--part", default="")
+    rc_.set_defaults(fn=_record)
     pv = sub.add_parser("preview", help="film one scenario: base and head side by side")
     pv.add_argument("--base", required=True); pv.add_argument("--head", required=True)
     pv.add_argument("--scenario", type=int, required=True); pv.add_argument("--out", required=True)
