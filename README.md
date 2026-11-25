@@ -56,3 +56,12 @@ Add `cameras = ["front", "wrist"]` (optional `camera_hz`, `image_size`) to `[con
 
 ## Roadmap
 `docs/design_staged_rollouts.md`: how the simulation gate extends to canary → fleet rollouts with automatic rollback (design only, built with the first team that ships to real robots).
+
+## Release records (robot setups)
+`daedro release --file daedro-release.toml --out release/` runs base vs head on each hardware setup and writes a release record (JSON, Markdown, HTML) with a verdict per setup: Ready, Review, Blocked, or Needs hardware test. `daedro approve --record release/ --by NAME --setup "..." [--handoff "..."]` records approvals and hand-offs. Example: `examples/release/`.
+
+## SO-101 (experimental)
+`robot = "so101"` under `[controller]`. See `docs/so101_preview.md` for what works and its limits. Example: `examples/so101/`.
+
+## Plan
+`docs/game_plan.md`: the next six weeks.
