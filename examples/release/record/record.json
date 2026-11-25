@@ -1,0 +1,239 @@
+{
+ "release": "pick-cycle v2.4 \u2192 v2.5 (faster cycle, softer grip)",
+ "created": "2026-11-25T00:07:36+00:00",
+ "setups": [
+  {
+   "name": "Site A \u00b7 light parts (\u2264 300 g)",
+   "verdict": "ready",
+   "notes": "Packaging line: small plastic parts.",
+   "base_config": "v2.4.toml",
+   "head_config": "v2.5.toml",
+   "n": 120,
+   "base_success": 120,
+   "head_success": 120,
+   "regressed": 0,
+   "fixed": 0,
+   "p_value": 1.0,
+   "envelope": {
+    "friction": [
+     0.2,
+     1.2,
+     "log"
+    ],
+    "half_size": [
+     0.015,
+     0.035,
+     "linear"
+    ],
+    "ik_noise": [
+     0.0,
+     0.01,
+     "linear"
+    ],
+    "mass": [
+     0.05,
+     0.3,
+     "log"
+    ]
+   },
+   "pinned": [],
+   "top_regressions": [],
+   "environment": {
+    "simulator": "MuJoCo 4.0.1",
+    "robot": "Franka Panda (MuJoCo Menagerie eea4c74)",
+    "task": "scripted pick-and-place, 3 cm success radius"
+   }
+  },
+  {
+   "name": "Site B \u00b7 heavy parts (up to 1 kg)",
+   "verdict": "blocked",
+   "notes": "Machine tending: steel brackets.",
+   "base_config": "v2.4.toml",
+   "head_config": "v2.5.toml",
+   "n": 120,
+   "base_success": 115,
+   "head_success": 106,
+   "regressed": 9,
+   "fixed": 0,
+   "p_value": 0.00390625,
+   "envelope": {
+    "friction": [
+     0.2,
+     1.2,
+     "log"
+    ],
+    "half_size": [
+     0.015,
+     0.035,
+     "linear"
+    ],
+    "ik_noise": [
+     0.0,
+     0.01,
+     "linear"
+    ],
+    "mass": [
+     0.3,
+     1.0,
+     "log"
+    ]
+   },
+   "pinned": [],
+   "top_regressions": [
+    {
+     "scenario": 72,
+     "outcome": "slip_on_lift",
+     "friction": 0.23463304521086317,
+     "mass": 0.974205791006735,
+     "size_cm": 5.9,
+     "repro": "daedro repro --config v2.5.toml --scenario 72"
+    },
+    {
+     "scenario": 2,
+     "outcome": "slip_on_lift",
+     "friction": 0.21115780594168274,
+     "mass": 0.9383856117511542,
+     "size_cm": 3.6,
+     "repro": "daedro repro --config v2.5.toml --scenario 2"
+    },
+    {
+     "scenario": 14,
+     "outcome": "drop_in_transit",
+     "friction": 0.2737094819443968,
+     "mass": 0.9284572870746945,
+     "size_cm": 5.6,
+     "repro": "daedro repro --config v2.5.toml --scenario 14"
+    },
+    {
+     "scenario": 49,
+     "outcome": "slip_on_lift",
+     "friction": 0.2486320265591328,
+     "mass": 0.8409945454306148,
+     "size_cm": 4.3,
+     "repro": "daedro repro --config v2.5.toml --scenario 49"
+    },
+    {
+     "scenario": 32,
+     "outcome": "slip_on_lift",
+     "friction": 0.22807514772991266,
+     "mass": 0.7884113763264493,
+     "size_cm": 3.3,
+     "repro": "daedro repro --config v2.5.toml --scenario 32"
+    }
+   ],
+   "environment": {
+    "simulator": "MuJoCo 4.0.1",
+    "robot": "Franka Panda (MuJoCo Menagerie eea4c74)",
+    "task": "scripted pick-and-place, 3 cm success radius"
+   }
+  },
+  {
+   "name": "Site B \u00b7 suction cell",
+   "verdict": "hardware",
+   "notes": "Suction gripper: no simulation model yet."
+  },
+  {
+   "name": "Lab \u00b7 SO-101 (experimental)",
+   "verdict": "blocked",
+   "notes": "Low-cost arm used for prototyping; SO-101 simulation is experimental.",
+   "base_config": "so101_v1.toml",
+   "head_config": "so101_v2.toml",
+   "n": 60,
+   "base_success": 45,
+   "head_success": 16,
+   "regressed": 32,
+   "fixed": 3,
+   "p_value": 4.176981747150421e-07,
+   "envelope": {
+    "friction": [
+     0.25,
+     1.2,
+     "log"
+    ],
+    "half_size": [
+     0.009,
+     0.013,
+     "linear"
+    ],
+    "ik_noise": [
+     0.0,
+     0.0001,
+     "linear"
+    ],
+    "mass": [
+     0.01,
+     0.15,
+     "log"
+    ]
+   },
+   "pinned": [],
+   "top_regressions": [
+    {
+     "scenario": 6,
+     "outcome": "slip_on_lift",
+     "friction": 1.015422071044531,
+     "mass": 0.14627077165280816,
+     "size_cm": 2.0,
+     "repro": "daedro repro --config so101_v2.toml --scenario 6"
+    },
+    {
+     "scenario": 33,
+     "outcome": "slip_on_lift",
+     "friction": 0.6470687960617681,
+     "mass": 0.13877910540616617,
+     "size_cm": 1.9,
+     "repro": "daedro repro --config so101_v2.toml --scenario 33"
+    },
+    {
+     "scenario": 3,
+     "outcome": "misplaced",
+     "friction": 0.8695131764874576,
+     "mass": 0.12743559989838857,
+     "size_cm": 2.4,
+     "repro": "daedro repro --config so101_v2.toml --scenario 3"
+    },
+    {
+     "scenario": 10,
+     "outcome": "drop_in_transit",
+     "friction": 0.7442836948906293,
+     "mass": 0.12026256671803287,
+     "size_cm": 2.1,
+     "repro": "daedro repro --config so101_v2.toml --scenario 10"
+    },
+    {
+     "scenario": 52,
+     "outcome": "slip_on_lift",
+     "friction": 0.8831774069315363,
+     "mass": 0.10927197267405474,
+     "size_cm": 2.1,
+     "repro": "daedro repro --config so101_v2.toml --scenario 52"
+    }
+   ],
+   "environment": {
+    "simulator": "MuJoCo 4.0.1",
+    "robot": "SO-101 (MuJoCo Menagerie eea4c74), preview support",
+    "task": "scripted pick-and-place, 2 cm success radius"
+   }
+  }
+ ],
+ "approvals": [
+  {
+   "by": "Release lead (example)",
+   "setups": [
+    "Site A \u00b7 light parts (\u2264 300 g)"
+   ],
+   "note": "Sim clean; rolling out to packaging line first",
+   "at": "2026-11-25T00:07:45+00:00"
+  }
+ ],
+ "handoffs": [
+  {
+   "to": "existing fleet deploy tool (example)",
+   "setups": [
+    "Site A \u00b7 light parts (\u2264 300 g)"
+   ],
+   "by": "Release lead (example)",
+   "at": "2026-11-25T00:07:45+00:00"
+  }
+ ]
+}

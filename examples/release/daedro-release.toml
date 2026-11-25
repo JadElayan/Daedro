@@ -1,0 +1,29 @@
+# Example release: a faster pick cycle with a softer grip, going to three setups.
+# Illustrative company and sites; the simulation results are real runs.
+[release]
+name = "pick-cycle v2.4 → v2.5 (faster cycle, softer grip)"
+base = "v2.4.toml"
+head = "v2.5.toml"
+
+[[setup]]
+name = "Site A · light parts (≤ 300 g)"
+notes = "Packaging line: small plastic parts."
+[setup.envelope]
+mass = [0.05, 0.3]
+
+[[setup]]
+name = "Site B · heavy parts (up to 1 kg)"
+notes = "Machine tending: steel brackets."
+[setup.envelope]
+mass = [0.3, 1.0]
+
+[[setup]]
+name = "Site B · suction cell"
+evidence = "none"
+notes = "Suction gripper: no simulation model yet."
+
+[[setup]]
+name = "Lab · SO-101 (experimental)"
+base = "so101_v1.toml"
+head = "so101_v2.toml"
+notes = "Low-cost arm used for prototyping; SO-101 simulation is experimental."

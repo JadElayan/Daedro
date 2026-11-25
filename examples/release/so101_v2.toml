@@ -1,0 +1,14 @@
+# PR: squeeze more gently to avoid marking soft parts (jaw stops at 0.10 rad instead of -0.17).
+[controller]
+robot = "so101"
+jaw_close = 0.10
+
+[suite]
+n = 60
+seed = 5
+
+[suite.envelope]
+friction  = [0.25, 1.2, "log"]   # dry plastic / rubber parts
+mass      = [0.01, 0.15, "log"]
+half_size = [0.009, 0.013]       # 1.8 to 2.6 cm cubes
+ik_noise  = [0.0, 0.0001]   # experimental SO-101: noise-free only

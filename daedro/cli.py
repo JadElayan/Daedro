@@ -92,6 +92,24 @@ def _pin(a) -> int:
     return 0
 
 
+def _release(a) -> int:
+    from . import release as rel
+    rec = rel.run_release(a.file, a.workers)
+    out = rel.save(rec, a.out)
+    print(rel.render_markdown(rec))
+    print(f"\nrelease record -> {out}/index.html")
+    blocked = [s["name"] for s in rec["setups"] if s["verdict"] == "blocked"]
+    return 1 if (a.fail_on_blocked and blocked) else 0
+
+
+def _approve(a) -> int:
+    from . import release as rel
+    setups = [x.strip() for x in a.setup]
+    rel.approve(a.record, a.by, setups, a.note or "", a.handoff or "")
+    print(f"approved {setups} by {a.by}" + (f", handed off to {a.handoff}" if a.handoff else ""))
+    return 0
+
+
 def _preview(a) -> int:
     from .video import render_scenario
     base_ctrl, _ = cfgmod.load(a.base)
@@ -161,6 +179,16 @@ def main(argv=None) -> int:
     pn.add_argument("--half-size", type=float); pn.add_argument("--ik-noise", type=float)
     pn.add_argument("--seed", type=int); pn.add_argument("--id"); pn.add_argument("--note"); pn.add_argument("--source")
     pn.set_defaults(fn=_pin)
+    rl = sub.add_parser("release", help="run a release across robot setups and write a release record")
+    rl.add_argument("--file", default="daedro-release.toml"); rl.add_argument("--out", default="release")
+    rl.add_argument("--workers", type=int, default=4)
+    rl.add_argument("--fail-on-blocked", action="store_true", help="exit 1 if any setup is Blocked")
+    rl.set_defaults(fn=_release)
+    ap_ = sub.add_parser("approve", help="record an approval (and optional hand-off) in a release record")
+    ap_.add_argument("--record", required=True, help="release record directory")
+    ap_.add_argument("--by", required=True); ap_.add_argument("--setup", action="append", required=True)
+    ap_.add_argument("--note"); ap_.add_argument("--handoff", help="where the update went, e.g. 'fleet tool, ticket 123'")
+    ap_.set_defaults(fn=_approve)
     pv = sub.add_parser("preview", help="film one scenario: base and head side by side")
     pv.add_argument("--base", required=True); pv.add_argument("--head", required=True)
     pv.add_argument("--scenario", type=int, required=True); pv.add_argument("--out", required=True)
