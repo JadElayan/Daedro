@@ -92,11 +92,12 @@ def side_by_side(left: Recorder, right: Recorder, left_title: str, right_title: 
 
 
 def _replay(params, seed, ctrl, rec):
-    from .episode import run_episode
-    from .plugin import PluginSpec, run_plugin_episode
-    if isinstance(ctrl, PluginSpec):
-        return run_plugin_episode(params, seed, ctrl, recorder=rec)
-    return run_episode(params, seed, controller=ctrl, recorder=rec).to_dict()
+    from .compare import run_any
+    from .so101 import So101Config
+    if isinstance(ctrl, So101Config):  # small arm: frame it closer
+        rec.cam.lookat[:] = [0.18, 0.0, 0.05]
+        rec.cam.distance, rec.cam.azimuth, rec.cam.elevation = 0.55, 180.0, -32.0
+    return run_any(params, seed, ctrl, rec)
 
 
 def render_scenario(base_ctrl, head_ctrl, params, seed, idx, base_label, head_label, out: Path) -> dict:

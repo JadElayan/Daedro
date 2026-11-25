@@ -23,9 +23,19 @@ from .scene import menagerie_panda_path
 
 def _run(job):
     idx, seed, params, ctrl = job
-    r = run_plugin_episode(params, seed, ctrl) if isinstance(ctrl, PluginSpec) else run_episode(params, seed, controller=ctrl).to_dict()
+    r = run_any(params, seed, ctrl)
     r["scenario"] = idx
     return r
+
+
+def run_any(params, seed, ctrl, recorder=None) -> dict:
+    """Dispatch one episode to the right robot / controller type."""
+    from .so101 import So101Config, run_episode as run_so101
+    if isinstance(ctrl, PluginSpec):
+        return run_plugin_episode(params, seed, ctrl, recorder=recorder)
+    if isinstance(ctrl, So101Config):
+        return run_so101(params, seed, ctrl, recorder=recorder)
+    return run_episode(params, seed, controller=ctrl, recorder=recorder).to_dict()
 
 
 def run_suite(ctrl: ControllerConfig, suite: Suite, workers: int = 4) -> list[dict]:
@@ -96,7 +106,7 @@ class Comparison:
             "pinned_regressions": [h["scenario"] for _, h in self.pinned_regressions()],
             "fixes": [h["scenario"] for _, h in self.fixes],
             "mcnemar_p": self.p_value(),
-            "environment": environment(),
+            "environment": environment(self.head_cfg),
         }
 
 
@@ -105,13 +115,17 @@ def compare(base_cfg: ControllerConfig, head_cfg: ControllerConfig, suite: Suite
                       run_pinned(base_cfg, suite, workers), run_pinned(head_cfg, suite, workers))
 
 
-def environment() -> dict:
+def environment(ctrl=None) -> dict:
     import subprocess
     try:
         commit = subprocess.check_output(["git", "-C", str(menagerie_panda_path().parents[1]), "rev-parse", "--short", "HEAD"],
                                          text=True, stderr=subprocess.DEVNULL).strip()
     except Exception:
         commit = "unknown"
+    from .so101 import So101Config
+    if isinstance(ctrl, So101Config):
+        return {"simulator": f"MuJoCo {mujoco.__version__}", "robot": f"SO-101 (MuJoCo Menagerie {commit}), preview support",
+                "task": "scripted pick-and-place, 2 cm success radius"}
     return {"simulator": f"MuJoCo {mujoco.__version__}", "robot": f"Franka Panda (MuJoCo Menagerie {commit})",
             "task": "scripted pick-and-place, 3 cm success radius"}
 
@@ -179,7 +193,7 @@ def render_markdown(cmp: Comparison, base_label: str, head_label: str, head_conf
     lb, ub = wilson(kb, n)
     lh, uh = wilson(kh, n)
     regs, fixes, p = cmp.regressions, cmp.fixes, cmp.p_value()
-    env = environment()
+    env = environment(cmp.head_cfg)
 
     if regs and p < 0.05 and kh < kb:
         verdict = f"🔴 **Regression detected.** {len(regs)} scenarios that passed on `{base_label}` fail on `{head_label}`."

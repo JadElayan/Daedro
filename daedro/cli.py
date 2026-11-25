@@ -57,8 +57,8 @@ def _repro(a) -> int:
         print(f"scenario must be in 0..{len(scenarios) - 1}", file=sys.stderr)
         return 2
     seed, params = scenarios[a.scenario]
-    from .plugin import PluginSpec, run_plugin_episode
-    r = run_plugin_episode(params, seed, ctrl) if isinstance(ctrl, PluginSpec) else run_episode(params, seed, controller=ctrl).to_dict()
+    from .compare import run_any
+    r = run_any(params, seed, ctrl)
     print(json.dumps({"scenario": a.scenario, "params": params.__dict__, "seed": seed, "result": r}, indent=1))
     return 0
 
@@ -86,8 +86,8 @@ def _pin(a) -> int:
     entry = failmod.Pinned(fid, int(seed), params.friction, params.mass, params.half_size, params.ik_noise,
                            source, a.note or "", datetime.date.today().isoformat())
     failmod.append(suite.failures_file, entry)
-    from .plugin import PluginSpec, run_plugin_episode
-    r = run_plugin_episode(params, seed, ctrl) if isinstance(ctrl, PluginSpec) else run_episode(params, seed, controller=ctrl).to_dict()
+    from .compare import run_any
+    r = run_any(params, seed, ctrl)
     print(f"pinned {fid!r} -> {suite.failures_file}  (currently: {r['outcome']} with this config)")
     return 0
 

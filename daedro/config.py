@@ -21,6 +21,7 @@ from pathlib import Path
 from . import failures as failmod
 from .episode import ControllerConfig
 from .plugin import PluginSpec
+from .so101 import SO101_SPACE, So101Config
 from .sampling import NAMES, PARAM_SPACE
 
 
@@ -53,6 +54,15 @@ def load(path: str | Path) -> tuple[ControllerConfig | PluginSpec, Suite]:
                                ctrl_raw.get("episode_s", 10.0), ctrl_raw.get("cameras", ()),
                                ctrl_raw.get("camera_hz", 10.0), ctrl_raw.get("image_size", (128, 128)))
         return ctrl, _suite(raw, path)
+    if ctrl_raw.get("robot", "panda") == "so101":
+        allowed_so = {f.name for f in fields(So101Config)}
+        bad = set(ctrl_raw) - allowed_so
+        if bad:
+            raise ValueError(f"{path}: unknown [controller] keys {sorted(bad)} for robot so101; allowed: {sorted(allowed_so)}")
+        return So101Config(**ctrl_raw), _suite(raw, path, SO101_SPACE)
+    if ctrl_raw.get("robot", "panda") != "panda":
+        raise ValueError(f"{path}: unknown robot {ctrl_raw['robot']!r}; supported: panda, so101")
+    ctrl_raw.pop("robot", None)
     unknown = set(ctrl_raw) - allowed
     if unknown:
         raise ValueError(f"{path}: unknown [controller] keys {sorted(unknown)}; allowed: {sorted(allowed)}")
@@ -62,14 +72,15 @@ def load(path: str | Path) -> tuple[ControllerConfig | PluginSpec, Suite]:
     return ctrl, _suite(raw, path)
 
 
-def _suite(raw: dict, path) -> Suite:
+def _suite(raw: dict, path, space: dict | None = None) -> Suite:
     s = raw.get("suite", {})
-    env = dict(PARAM_SPACE)
+    space = space or PARAM_SPACE
+    env = dict(space)
     for k, v in s.get("envelope", {}).items():
         if k not in NAMES:
             raise ValueError(f"{path}: unknown envelope parameter {k!r}; allowed: {NAMES}")
-        lo, hi, kind = float(v[0]), float(v[1]), (v[2] if len(v) > 2 else PARAM_SPACE[k][2])
-        dlo, dhi, _ = PARAM_SPACE[k]
+        lo, hi, kind = float(v[0]), float(v[1]), (v[2] if len(v) > 2 else space[k][2])
+        dlo, dhi, _ = space[k]
         if not (dlo <= lo < hi <= dhi):
             raise ValueError(f"{path}: envelope {k}=[{lo},{hi}] must lie within the supported range [{dlo},{dhi}]")
         env[k] = (lo, hi, kind)
