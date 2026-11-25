@@ -4,7 +4,7 @@ import pytest
 
 from daedro import release as rel
 
-BASE = ("[suite]\nn = 4\nseed = 1\n[suite.envelope]\nfriction = [0.5, 1.2]\nik_noise = [0.0, 0.002]\n")
+BASE = ("[suite]\nn = 8\nseed = 1\n[suite.envelope]\nfriction = [0.5, 1.2]\nik_noise = [0.0, 0.002]\n")
 
 
 def _files(tmp_path):
