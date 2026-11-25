@@ -92,7 +92,26 @@ section { border-top: 1px solid var(--line); padding-block: clamp(3rem, 7vw, 6re
 .access { background: var(--surface); border: 1px solid var(--line); padding: clamp(1rem, 5vw, 3rem); border-radius: 6px; }
 .access .sub { margin-bottom: .85rem; }
 footer { border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: .45rem 1rem; padding-block: 1.2rem 2rem; color: var(--muted); font-size: .875rem; }
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 1.6rem 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.features li { padding: 1.15rem 1rem; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.features h3 { margin-bottom: .45rem; font-size: 1.05rem; }
+.features p { color: var(--muted); font-size: .95rem; }
+.pill { display: inline-block; margin-left: .4rem; padding: .05rem .45rem; border: 1px solid var(--line-strong); border-radius: 99px; color: var(--muted); font: 500 .7rem/1.6 var(--mono); vertical-align: middle; letter-spacing: 0; }
+.release { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); overflow-x: auto; }
+.release table { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 34rem; }
+.release th, .release td { padding: .75rem 1rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.release th { color: var(--muted); font: 500 .75rem/1.5 var(--mono); text-transform: uppercase; letter-spacing: .06em; background: var(--raised); }
+.release tr:last-child td { border-bottom: 0; }
+.v { display: inline-block; padding: .1rem .55rem; border-radius: 99px; border: 1px solid currentColor; font-size: .78rem; font-weight: 600; white-space: nowrap; }
+.v.ready { color: #5fb98a; } .v.blocked { color: #e2665c; } .v.hw { color: var(--accent); }
+.release-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem; margin-top: 1rem; }
+.who { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1.6rem; }
+.who > div { border: 1px solid var(--line); border-radius: 6px; padding: 1.15rem 1rem; background: var(--surface); }
+.who h3 { margin-bottom: .5rem; }
+.who p { color: var(--muted); font-size: .95rem; }
+.who .ask { margin-top: .75rem; color: var(--ink); font-size: .9rem; }
 @media (max-width: 46rem) {
+  .features, .who { grid-template-columns: minmax(0, 1fr); }
   .wrap { width: calc(100% - 2rem); }
   nav { min-height: 3.8rem; }
   .nav-links .wide { display: none; }
@@ -111,6 +130,7 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
     <a class="brand" href="#top" aria-label="Daedro home">{{MARK}}<span>DAEDRO</span></a>
     <div class="nav-links">
       <a class="wide" href="#report">Demo report</a>
+      <a class="wide" href="#release">Release records</a>
       <a class="wide" href="#how">How it works</a>
       <a class="btn" href="#access">Join the pilot</a>
     </div>
@@ -122,7 +142,7 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
     <div>
       <p class="tag">Simulation only</p>
       <h1>Regression tests for robots.</h1>
-      <p class="lede">Compare two software versions in simulation. Replay what breaks.</p>
+      <p class="lede">Test every robot software update in simulation. See what broke, on which robots, and replay it in one command.</p>
       <div class="actions">
         <a class="btn" href="#access">Join the pilot</a>
         <a class="btn ghost" href="#report">View report</a>
@@ -157,6 +177,42 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
     </article>
   </section>
 
+  <section id="release" aria-labelledby="release-h">
+    <div class="section-intro">
+      <div>
+        <p class="eyebrow">Release record</p>
+        <h2 id="release-h">Which robots can take this update?</h2>
+      </div>
+      <p class="sub">Your robots run the same software on different hardware. Daedro tests the update on each setup and gives every one a verdict, so the release lead sees the whole picture on one page.</p>
+    </div>
+    {{RELEASE_TABLE}}
+    <div class="release-foot">
+      <p class="limit" style="margin:0">Real simulation runs. The sites are an illustrative example.</p>
+      <a class="btn ghost" href="release/">Open the full release record</a>
+    </div>
+  </section>
+
+  <section id="features" aria-labelledby="features-h">
+    <h2 id="features-h">What it does</h2>
+    <ul class="features" role="list">
+      <li><h3>Checks every pull request</h3><p>The old and new versions run the same seeded scenarios. If the new one breaks something, the check fails and the report lands on the PR.</p></li>
+      <li><h3>Shows you the failure</h3><p>Side-by-side videos of each regression, old version next to new, plus a command that replays it exactly.</p></li>
+      <li><h3>Remembers every failure</h3><p>Pin a failure, from simulation or from a real robot, and every future update is tested against it. Your test suite grows with every bug.</p></li>
+      <li><h3>Gives each robot setup a verdict</h3><p>Ready, Review, Blocked, or Needs hardware test, with who approved what and where the update went.</p></li>
+      <li><h3>Runs your own controller</h3><p>Point it at your Python controller, or a vision policy that uses front and wrist cameras.</p></li>
+      <li><h3>Works with low-cost arms <span class="pill">experimental</span></h3><p>SO-101, the arm used with Hugging Face LeRobot, alongside the Franka Panda.</p></li>
+    </ul>
+  </section>
+
+  <section id="who" aria-labelledby="who-h">
+    <h2 id="who-h">Who it's for</h2>
+    <div class="who">
+      <div><h3>Builders</h3><p>Students, researchers and hobbyists training robot policies on arms like the SO-101.</p><p class="ask">Is my new policy actually better than the last one?</p></div>
+      <div><h3>Robot teams</h3><p>Startups and labs shipping controller changes every week.</p><p class="ask">Did this change break something we already fixed?</p></div>
+      <div><h3>Manufacturers</h3><p>Teams running robots at several sites, on different hardware.</p><p class="ask">Which robots can take this update, and what is the evidence?</p></div>
+    </div>
+  </section>
+
   <section id="how" aria-labelledby="how-h">
     <h2 id="how-h">How it works</h2>
     <ol class="steps" role="list">
@@ -169,8 +225,8 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
   <section id="today" aria-labelledby="today-h">
     <h2 id="today-h">Prototype scope</h2>
     <div class="scope">
-      <div><h3>Works now</h3><ul><li>Franka Panda pick-and-place in MuJoCo</li><li>Bring your own Python controller</li><li>Seeded comparisons via the CLI and GitHub Action</li></ul></div>
-      <div><h3>Not yet</h3><ul><li>Camera-based learned policies</li><li>Other robots or simulators</li><li>Hardware validation</li></ul></div>
+      <div><h3>Works now</h3><ul><li>Franka Panda pick-and-place in MuJoCo</li><li>Your own Python controller, including camera observations for vision policies</li><li>Pull request checks, video replays, failure library and release records</li><li>SO-101 support, experimental: noise-free scenarios only for now</li></ul></div>
+      <div><h3>Not yet</h3><ul><li>Uploading your own robot model</li><li>Other simulators (Isaac Lab, ManiSkill)</li><li>Hosted runs and team dashboards</li><li>Deploying to real robots, or any hardware validation</li></ul></div>
     </div>
     <p class="limit">Passing in simulation does not guarantee real-world safety.</p>
   </section>
