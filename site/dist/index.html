@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#08090b">
-<meta name="description" content="Daedro compares robot controllers on identical simulation scenarios and gives you a command to replay each regression.">
+<meta name="description" content="Daedro turns real robot incidents into cases your team can investigate, test fixes against, and prove across every machine.">
 <title>Daedro</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,7 +43,7 @@ nav { min-height: 4.5rem; display: flex; align-items: center; justify-content: s
 .btn.ghost:hover { background: var(--raised); border-color: var(--muted); }
 h1, h2, h3, p, figure { margin: 0; }
 h1, h2, h3 { line-height: 1.08; letter-spacing: -.05em; font-weight: 600; }
-h1 { font-size: clamp(3.1rem, 5vw, 5.1rem); max-width: 12ch; text-wrap: balance; }
+h1 { font-size: clamp(3.1rem, 5vw, 4.6rem); max-width: 15ch; text-wrap: balance; }
 h2 { font-size: clamp(2.15rem, 4.4vw, 3.6rem); }
 h3 { font-size: 1.25rem; letter-spacing: -.035em; }
 .hero { display: grid; grid-template-columns: minmax(0, .77fr) minmax(0, 1.23fr); gap: clamp(1.8rem, 5vw, 5rem); align-items: center; padding-block: clamp(3rem, 6vw, 5.5rem); }
@@ -110,7 +110,24 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
 .who h3 { margin-bottom: .5rem; }
 .who p { color: var(--muted); font-size: .95rem; }
 .who .ask { margin-top: .75rem; color: var(--ink); font-size: .9rem; }
+.loop { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 1.6rem 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.loop li { padding: 1.15rem 1rem; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.loop .n { font: 500 .75rem/1 var(--mono); color: var(--accent); }
+.loop h3 { margin: .5rem 0 .45rem; font-size: 1.1rem; }
+.loop p { color: var(--muted); font-size: .95rem; }
+.casebox { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 1rem; }
+.casebox .plate { padding: .85rem; border-radius: 6px; background: var(--surface); }
+.casebox video { width: 100%; display: block; border-radius: 4px; }
+.casebox svg { width: 100%; height: auto; display: block; border-radius: 4px; }
+.casebox h3 { font-size: .78rem; font-family: var(--mono); font-weight: 500; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin: 0 0 .6rem; }
+.casebox ol { margin: 0; padding-left: 1.1rem; }
+.casebox li { margin: 0 0 .7rem; color: var(--muted); font-size: .93rem; }
+.casebox li b { color: var(--ink); font-weight: 600; }
+.casebox .status { display: inline-block; margin-bottom: .8rem; padding: .1rem .55rem; border: 1px solid #5fb98a; color: #5fb98a; border-radius: 99px; font-size: .78rem; font-weight: 600; }
+.report-details summary { list-style: none; width: fit-content; cursor: pointer; margin-bottom: 1rem; }
+.report-details summary::-webkit-details-marker { display: none; }
 @media (max-width: 46rem) {
+  .loop, .casebox { grid-template-columns: minmax(0, 1fr); }
   .features, .who { grid-template-columns: minmax(0, 1fr); }
   .wrap { width: calc(100% - 2rem); }
   nav { min-height: 3.8rem; }
@@ -132,9 +149,8 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
 </svg>
 <span>DAEDRO</span></a>
     <div class="nav-links">
-      <a class="wide" href="#report">Demo report</a>
-      <a class="wide" href="#release">Release records</a>
-      <a class="wide" href="#how">How it works</a>
+      <a class="wide" href="#loop">How it works</a>
+      <a class="wide" href="#case">Example case</a>
       <a class="btn" href="#access">Join the pilot</a>
     </div>
   </nav>
@@ -143,12 +159,12 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
 <main class="wrap">
   <header class="hero">
     <div>
-      <p class="tag">Simulation only</p>
-      <h1>Regression tests for robots.</h1>
-      <p class="lede">Test every robot software update in simulation. See what broke, on which robots, and replay it in one command.</p>
+      <p class="tag">Early prototype · simulation-backed</p>
+      <h1>Make your robots better with what happens on your floor.</h1>
+      <p class="lede">Daedro turns real robot incidents into cases your team can investigate, test fixes against, and prove across every machine. Every case you keep makes the next improvement faster.</p>
       <div class="actions">
         <a class="btn" href="#access">Join the pilot</a>
-        <a class="btn ghost" href="#report">View report</a>
+        <a class="btn ghost" href="#case">See a case</a>
       </div>
     </div>
     <figure class="plate demo" aria-labelledby="demo-caption">
@@ -158,28 +174,79 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
         <a href="Daedro-demo.mp4">Download the demo video</a>
       </video>
       <figcaption id="demo-caption">
-        <span>Scenario 137 · recorded in MuJoCo</span>
+        <span>Two controller versions on the same task · recorded in MuJoCo</span>
         <details>
           <summary>Transcript</summary>
-          <p>Two simulated Franka Panda arms run the same pick-and-place scenario. The baseline places the part. The proposed controller drops it in transit. Daedro flags seven regressions in the pull request report and provides the command to replay scenario 137.</p>
+          <p>Two simulated Franka Panda arms run the same pick-and-place scenario. The baseline places the part. The proposed controller drops it in transit. Daedro flags the regression and provides the command to replay it.</p>
         </details>
       </figcaption>
     </figure>
   </header>
 
+  <section id="loop" aria-labelledby="loop-h">
+    <div class="section-intro">
+      <div>
+        <p class="eyebrow">How teams use it</p>
+        <h2 id="loop-h">From an incident to a proven fix</h2>
+      </div>
+      <p class="sub">A pick fails, a shift goes badly, a new gripper behaves differently. Daedro keeps that evidence and turns it into a better robot, instead of losing it in logs and chat threads.</p>
+    </div>
+    <ol class="loop" role="list">
+      <li><span class="n">01</span><h3>Capture</h3><p>Import the recording your cell already keeps. Daedro finds the moment that matters.</p></li>
+      <li><span class="n">02</span><h3>Make it a case</h3><p>The clip, robot state, gripper, software version and part, kept together.</p></li>
+      <li><span class="n">03</span><h3>Reproduce</h3><p>Check whether simulation recreates the incident, at the recorded conditions and nearby.</p></li>
+      <li><span class="n">04</span><h3>Try a fix</h3><p>Run the current and proposed behaviour against the case: what it resolves, what it doesn't, what it breaks.</p></li>
+      <li><span class="n">05</span><h3>Verify everywhere</h3><p>Get a verdict for every cell and hardware setup before rollout, including where only a hardware test will do.</p></li>
+      <li><span class="n">06</span><h3>Keep what you learned</h3><p>Log hardware trials and real outcomes. Every case becomes a test that guards future changes.</p></li>
+    </ol>
+  </section>
+
+  <section id="case" aria-labelledby="case-h">
+    <div class="section-intro">
+      <div>
+        <p class="eyebrow">Example case</p>
+        <h2 id="case-h">A dropped bracket, traced to one setting</h2>
+      </div>
+      <p class="sub">A faster pick cycle started dropping heavy brackets at one cell. The case reproduced the drop, tested a fix, and showed the speed-up was fine. The softer grip was the problem.</p>
+    </div>
+    <div class='casebox'><div class='plate'><h3>What happened · 3.4s</h3><video src='cases/b2-bracket-drop/clip.mp4' controls muted loop playsinline preload='metadata'></video><p class='limit' style='margin:.6rem 0 0'>The part was lifted to 17 cm, then fell 24 cm from the target.</p></div><div class='plate'><span class='status'>fix verified (simulation)</span><h3>Evidence</h3><ol><li><b>Recording.</b> The part was lifted to 17 cm, then fell 24 cm from the target.</li><li><b>Reproduction.</b> Simulation reproduced the incident at the recorded conditions (drop_in_transit). Nearby variations: 18 of 20 fail (slip_on_lift 9, drop_in_transit 7, success 2, misplaced 2).</li><li><b>Fix test.</b> v2.5.1.toml: the recorded incident is fixed (drop_in_transit → success). Across 21 runs: 19 resolved, 0 still failing, 0 newly broken.</li></ol><h3 style='margin-top:1rem'>Timeline</h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" role="img" aria-label="Part height and gripper opening over time; incident at 3.4 s"><rect width="720" height="220" fill="#101318"/><line x1="36" y1="184" x2="684" y2="184" stroke="#2b343f"/><text x="137.0" y="208" fill="#aaaab0" font-size="11" text-anchor="middle">1s</text><text x="238.3" y="208" fill="#aaaab0" font-size="11" text-anchor="middle">2s</text><text x="339.5" y="208" fill="#aaaab0" font-size="11" text-anchor="middle">3s</text><text x="440.8" y="208" fill="#aaaab0" font-size="11" text-anchor="middle">4s</text><text x="542.0" y="208" fill="#aaaab0" font-size="11" text-anchor="middle">5s</text><text x="643.3" y="208" fill="#aaaab0" font-size="11" text-anchor="middle">6s</text><polyline points="36.0,36.0 41.1,36.0 46.1,36.0 51.2,36.0 56.3,36.0 61.3,36.0 66.4,36.0 71.4,36.0 76.5,36.0 81.6,36.0 86.6,36.0 91.7,36.0 96.8,36.0 101.8,36.0 106.9,36.0 111.9,36.0 117.0,36.0 122.1,36.0 127.1,36.0 132.2,36.0 137.3,36.0 142.3,36.0 147.4,36.0 152.4,36.0 157.5,36.0 162.6,36.0 167.6,36.0 172.7,36.0 177.8,36.0 182.8,36.0 187.9,36.0 192.9,36.0 198.0,36.0 203.1,36.0 208.1,36.0 213.2,36.0 218.3,101.2 223.3,86.8 228.4,85.3 233.4,85.4 238.5,84.8 243.6,85.7 248.6,85.2 253.7,85.1 258.7,86.6 263.8,86.2 268.9,84.7 273.9,86.0 279.0,86.8 284.1,86.0 289.1,86.5 294.2,86.1 299.2,86.2 304.3,85.9 309.4,85.3 314.4,86.7 319.5,85.8 324.6,86.2 329.6,85.2 334.7,86.1 339.7,85.7 344.8,86.1 349.9,86.1 354.9,86.3 360.0,86.2 365.1,85.4 370.1,85.1 375.2,85.6 380.2,86.6 385.3,85.6 390.4,86.6 395.4,87.5 400.5,184.0 405.6,182.8 410.6,182.8 415.7,182.8 420.7,182.8 425.8,182.8 430.9,182.7 435.9,182.8 441.0,182.8 446.1,182.8 451.1,182.8 456.2,182.8 461.2,182.8 466.3,182.8 471.4,182.8 476.4,182.8 481.5,182.8 486.6,182.8 491.6,182.8 496.7,182.8 501.7,182.8 506.8,182.8 511.9,182.7 516.9,182.8 522.0,182.8 527.1,182.8 532.1,182.8 537.2,182.8 542.2,182.8 547.3,182.8 552.4,72.9 557.4,36.2 562.5,36.0 567.6,36.0 572.6,36.0 577.7,36.0 582.7,36.0 587.8,36.0 592.9,36.0 597.9,36.0 603.0,36.0 608.1,36.0 613.1,36.0 618.2,36.0 623.2,36.0 628.3,36.0 633.4,36.0 638.4,36.0 643.5,36.0 648.6,36.0 653.6,36.0 658.7,36.0 663.7,36.0 668.8,36.0 673.9,36.0 678.9,36.0 684.0,36.0" fill="none" stroke="#526071" stroke-width="2" stroke-dasharray="4 3"/><polyline points="36.0,184.0 41.1,184.0 46.1,184.0 51.2,184.0 56.3,184.0 61.3,184.0 66.4,184.0 71.4,184.0 76.5,184.0 81.6,184.0 86.6,184.0 91.7,184.0 96.8,184.0 101.8,184.0 106.9,184.0 111.9,184.0 117.0,184.0 122.1,184.0 127.1,184.0 132.2,184.0 137.3,184.0 142.3,184.0 147.4,184.0 152.4,184.0 157.5,184.0 162.6,184.0 167.6,184.0 172.7,184.0 177.8,184.0 182.8,184.0 187.9,184.0 192.9,184.0 198.0,184.0 203.1,184.0 208.1,184.0 213.2,184.0 218.3,183.8 223.3,184.0 228.4,184.0 233.4,183.9 238.5,184.0 243.6,184.0 248.6,183.9 253.7,183.9 258.7,184.0 263.8,183.9 268.9,183.9 273.9,183.7 279.0,183.8 284.1,183.8 289.1,183.8 294.2,183.8 299.2,183.7 304.3,183.4 309.4,181.1 314.4,175.9 319.5,167.4 324.6,155.4 329.6,140.3 334.7,123.8 339.7,106.5 344.8,90.0 349.9,75.5 354.9,63.3 360.0,56.2 365.1,51.7 370.1,49.5 375.2,49.5 380.2,49.9 385.3,51.6 390.4,53.9 395.4,56.6 400.5,75.8 405.6,115.8 410.6,175.6 415.7,183.7 420.7,184.0 425.8,184.0 430.9,184.0 435.9,184.0 441.0,184.0 446.1,184.0 451.1,184.0 456.2,184.0 461.2,184.0 466.3,184.0 471.4,184.0 476.4,184.0 481.5,184.0 486.6,184.0 491.6,184.0 496.7,184.0 501.7,184.0 506.8,184.0 511.9,184.0 516.9,184.0 522.0,184.0 527.1,184.0 532.1,184.0 537.2,184.0 542.2,184.0 547.3,184.0 552.4,184.0 557.4,184.0 562.5,184.0 567.6,184.0 572.6,184.0 577.7,184.0 582.7,184.0 587.8,184.0 592.9,184.0 597.9,184.0 603.0,184.0 608.1,184.0 613.1,184.0 618.2,184.0 623.2,184.0 628.3,184.0 633.4,184.0 638.4,184.0 643.5,184.0 648.6,184.0 653.6,184.0 658.7,184.0 663.7,184.0 668.8,184.0 673.9,184.0 678.9,184.0 684.0,184.0" fill="none" stroke="#9ab0c7" stroke-width="2.5"/><line x1="380.2" y1="26" x2="380.2" y2="184" stroke="#e2665c" stroke-width="2"/><text x="386.2" y="22" fill="#e2665c" font-size="12">incident · 3.4s</text><text x="36" y="18" fill="#9ab0c7" font-size="12">part height (cm, max 17)</text><text x="226" y="18" fill="#7f8b99" font-size="12">- - gripper opening</text></svg></div></div>
+    <div class="release-foot">
+      <p class="limit" style="margin:0">Example case: the recording comes from our simulation, in the format a real cell would log. The cell and part are illustrative.</p>
+      <a class="btn ghost" href="cases/b2-bracket-drop/">Open the full case</a>
+    </div>
+  </section>
+
+  <section id="release" aria-labelledby="release-h">
+    <div class="section-intro">
+      <div>
+        <p class="eyebrow">Verify everywhere</p>
+        <h2 id="release-h">Which robots can take this change?</h2>
+      </div>
+      <p class="sub">Your robots run the same software on different hardware. Daedro tests a change on each setup and gives every one a verdict, so the person approving it sees the whole picture on one page.</p>
+    </div>
+    <div class='release' role='region' aria-label='Release record summary' tabindex='0'><table><thead><tr><th>Setup · pick-cycle v2.4 → v2.5 (faster cycle, softer grip)</th><th>Verdict</th><th>Evidence (simulation)</th></tr></thead><tbody><tr><td>Site A · light parts (≤ 300 g)</td><td><span class='v ready'>Ready</span></td><td>0 of 120 scenarios regressed · success 120 → 120</td></tr><tr><td>Site B · heavy parts (up to 1 kg)</td><td><span class='v blocked'>Blocked</span></td><td>9 of 120 scenarios regressed · success 115 → 106</td></tr><tr><td>Site B · suction cell</td><td><span class='v hw'>Needs hardware test</span></td><td>No simulation model yet</td></tr><tr><td>Lab · SO-101 (experimental)</td><td><span class='v blocked'>Blocked</span></td><td>32 of 60 scenarios regressed · success 45 → 16</td></tr></tbody></table></div>
+    <div class="release-foot">
+      <p class="limit" style="margin:0">Real simulation runs. The sites are an illustrative example.</p>
+      <a class="btn ghost" href="release/">Open the release record</a>
+    </div>
+  </section>
+
   <section id="report" class="report-band" aria-labelledby="report-h">
     <div class="section-intro">
       <div>
-        <h2 id="report-h">Regression report</h2>
+        <p class="eyebrow">On every pull request</p>
+        <h2 id="report-h">Changes are checked before they merge</h2>
       </div>
-      <p class="sub">Both versions ran the same 200 tests. Seven passed on the original and failed after the update.</p>
+      <p class="sub">Both versions run the same seeded scenarios, plus every case in your library. If a change brings back a known failure, the check fails and the report lands on the pull request.</p>
     </div>
-    <article class="pr" aria-label="Pull request comment">
-      <div class="pr-head"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
+    <details class="report-details">
+      <summary class="btn ghost">Show a real pull-request report</summary>
+      <article class="pr" aria-label="Pull request comment">
+        <div class="pr-head"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
   <path d="M4 37V5h30v9H13v23H4Zm56-10v32H30v-9h21V27h9ZM20 28h24v8H20z" fill="currentColor"/>
 </svg>
 <span><b>daedro</b> commented on <b>faster-softer-grip</b></span></div>
-      <div class="report" role="region" aria-label="Generated regression report" tabindex="0"><h2>Daedro regression report: <code>main</code> → <code>faster-softer-grip</code></h2>
+        <div class="report" role="region" aria-label="Generated regression report" tabindex="0"><h2>Daedro regression report: <code>main</code> → <code>faster-softer-grip</code></h2>
 <p>🔴 <strong>Regression detected.</strong> 7 scenarios that passed on <code>main</code> fail on <code>faster-softer-grip</code>.</p>
 <table>
 <thead>
@@ -370,67 +437,43 @@ footer { border-top: 1px solid var(--line); display: flex; justify-content: spac
 <blockquote>
 <p>⚠️ <strong>Simulation only.</strong> These results come from a MuJoCo model, not hardware. A pass here does not guarantee real-world performance or safety; a regression here is a lead to investigate, not proof of a hardware failure.</p>
 </blockquote></div>
-    </article>
-  </section>
-
-  <section id="release" aria-labelledby="release-h">
-    <div class="section-intro">
-      <div>
-        <p class="eyebrow">Release record</p>
-        <h2 id="release-h">Which robots can take this update?</h2>
-      </div>
-      <p class="sub">Your robots run the same software on different hardware. Daedro tests the update on each setup and gives every one a verdict, so the release lead sees the whole picture on one page.</p>
-    </div>
-    <div class='release' role='region' aria-label='Release record summary' tabindex='0'><table><thead><tr><th>Setup · pick-cycle v2.4 → v2.5 (faster cycle, softer grip)</th><th>Verdict</th><th>Evidence (simulation)</th></tr></thead><tbody><tr><td>Site A · light parts (≤ 300 g)</td><td><span class='v ready'>Ready</span></td><td>0 of 120 scenarios regressed · success 120 → 120</td></tr><tr><td>Site B · heavy parts (up to 1 kg)</td><td><span class='v blocked'>Blocked</span></td><td>9 of 120 scenarios regressed · success 115 → 106</td></tr><tr><td>Site B · suction cell</td><td><span class='v hw'>Needs hardware test</span></td><td>No simulation model yet</td></tr><tr><td>Lab · SO-101 (experimental)</td><td><span class='v blocked'>Blocked</span></td><td>32 of 60 scenarios regressed · success 45 → 16</td></tr></tbody></table></div>
-    <div class="release-foot">
-      <p class="limit" style="margin:0">Real simulation runs. The sites are an illustrative example.</p>
-      <a class="btn ghost" href="release/">Open the full release record</a>
-    </div>
-  </section>
-
-  <section id="features" aria-labelledby="features-h">
-    <h2 id="features-h">What it does</h2>
-    <ul class="features" role="list">
-      <li><h3>Checks every pull request</h3><p>The old and new versions run the same seeded scenarios. If the new one breaks something, the check fails and the report lands on the PR.</p></li>
-      <li><h3>Shows you the failure</h3><p>Side-by-side videos of each regression, old version next to new, plus a command that replays it exactly.</p></li>
-      <li><h3>Remembers every failure</h3><p>Pin a failure, from simulation or from a real robot, and every future update is tested against it. Your test suite grows with every bug.</p></li>
-      <li><h3>Gives each robot setup a verdict</h3><p>Ready, Review, Blocked, or Needs hardware test, with who approved what and where the update went.</p></li>
-      <li><h3>Runs your own controller</h3><p>Point it at your Python controller, or a vision policy that uses front and wrist cameras.</p></li>
-      <li><h3>Works with low-cost arms <span class="pill">experimental</span></h3><p>SO-101, the arm used with Hugging Face LeRobot, alongside the Franka Panda.</p></li>
-    </ul>
+      </article>
+    </details>
   </section>
 
   <section id="who" aria-labelledby="who-h">
     <h2 id="who-h">Who it's for</h2>
     <div class="who">
-      <div><h3>Builders</h3><p>Students, researchers and hobbyists training robot policies on arms like the SO-101.</p><p class="ask">Is my new policy actually better than the last one?</p></div>
-      <div><h3>Robot teams</h3><p>Startups and labs shipping controller changes every week.</p><p class="ask">Did this change break something we already fixed?</p></div>
-      <div><h3>Manufacturers</h3><p>Teams running robots at several sites, on different hardware.</p><p class="ask">Which robots can take this update, and what is the evidence?</p></div>
+      <div><h3>Manufacturers</h3><p>Robots at several sites, on different hardware.</p><p class="ask">Why does this cell struggle, and will this change help everywhere?</p></div>
+      <div><h3>Robot teams</h3><p>Startups and labs improving robots every week.</p><p class="ask">What happened on that bad shift, and did our fix work?</p></div>
+      <div><h3>Builders</h3><p>Students and researchers training policies on arms like the SO-101.</p><p class="ask">Is my new policy actually better than the last one?</p></div>
     </div>
-  </section>
-
-  <section id="how" aria-labelledby="how-h">
-    <h2 id="how-h">How it works</h2>
-    <ol class="steps" role="list">
-      <li class="step"><h3>Define the conditions</h3><p>Set the task and the conditions it should handle.</p></li>
-      <li class="step"><h3>Open a pull request</h3><p>Test both versions with the same inputs and seeds.</p></li>
-      <li class="step"><h3>Replay a failure</h3><p>Copy the command for the case you want to inspect.</p></li>
-    </ol>
   </section>
 
   <section id="today" aria-labelledby="today-h">
     <h2 id="today-h">Prototype scope</h2>
     <div class="scope">
-      <div><h3>Works now</h3><ul><li>Franka Panda pick-and-place in MuJoCo</li><li>Your own Python controller, including camera observations for vision policies</li><li>Pull request checks, video replays, failure library and release records</li><li>SO-101 support, experimental: noise-free scenarios only for now</li></ul></div>
-      <div><h3>Not yet</h3><ul><li>Uploading your own robot model</li><li>Other simulators (Isaac Lab, ManiSkill)</li><li>Hosted runs and team dashboards</li><li>Deploying to real robots, or any hardware validation</li></ul></div>
+      <div><h3>Works now</h3><ul>
+        <li>Cases from MCAP recordings with JSON channels (the format Daedro and Foxglove's JSON tools write): incident detection, clips, timelines</li>
+        <li>Reproduce incidents and test fixes in MuJoCo; Franka Panda trusted, SO-101 experimental</li>
+        <li>Release records per hardware setup, failure library, pull-request checks, video replays</li>
+        <li>Your own Python controller, including camera observations for vision policies</li>
+        <li>Logging hardware trials and post-rollout outcomes against each case</li>
+      </ul></div>
+      <div><h3>Not yet</h3><ul>
+        <li>Reading ROS 2 messages (CDR) directly from your bags</li>
+        <li>Building simulation from your own robot and cell models</li>
+        <li>Hosted runs, team accounts and dashboards</li>
+        <li>Automatic outcome tracking from your fleet, or any hardware validation</li>
+      </ul></div>
     </div>
-    <p class="limit">Passing in simulation does not guarantee real-world safety.</p>
+    <p class="limit">A recording shows what happened, not what a changed robot would have done. Passing in simulation does not guarantee real-world safety.</p>
   </section>
 
   <section id="access" aria-labelledby="access-h">
     <div class="access">
-      <h2 id="access-h">Testing a robot arm?</h2>
-      <div><p class="sub">Bring a controller change or a failure you want to reproduce.</p>
+      <h2 id="access-h">Have an incident you keep seeing?</h2>
+      <div><p class="sub">Bring one real robot incident to the pilot. We'll turn it into a case your team can test fixes against.</p>
       <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSdzd7Lh1lESTxQI-zhPis3TuiIE2pu0MOWlncH6e6n3tWmeXQ/viewform">Join the pilot</a>
 </div>
     </div>
