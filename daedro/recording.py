@@ -123,7 +123,7 @@ def write_mcap(path: str | Path, samples: list, metadata: dict, events: list[tup
 
 
 def record_episode(params, seed: int, ctrl, out: str | Path, *, cell: str, software_version: str,
-                   gripper: str, part: str, camera: bool = True) -> tuple[Path, dict]:
+                   gripper: str, part: str, camera: bool = True, fmt: str = "json") -> tuple[Path, dict]:
     """Run one simulated episode and save it as an MCAP recording (an example stand-in for real data)."""
     from .compare import run_any
     hook = RecordingHook(camera=camera)
@@ -146,6 +146,9 @@ def record_episode(params, seed: int, ctrl, out: str | Path, *, cell: str, softw
         "robot": "so101" if isinstance(ctrl, So101Config) else "franka_panda",
         "controller": json.dumps(ctrl.to_dict()), "recorded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
+    if fmt == "ros2":
+        from .ros2 import write_ros2
+        return write_ros2(out, hook.samples, meta, events), result
     return write_mcap(out, hook.samples, meta, events), result
 
 
@@ -161,9 +164,13 @@ class Recording:
     frames: list = field(default_factory=list)  # (t, jpeg bytes)
 
 
-def read_mcap(path: str | Path) -> Recording:
+def read_mcap(path: str | Path, topic_map: str | Path | None = None) -> Recording:
+    """Read a recording: Daedro/Foxglove JSON channels, or a ROS 2 (CDR) bag via a topic map."""
     from mcap.reader import make_reader
+    from .ros2 import is_ros2, read_ros2
     path = Path(path)
+    if is_ros2(path):
+        return read_ros2(path, topic_map)
     meta, ts, pos, grip_t, grip, joints, events, frames = {}, [], [], [], [], [], [], []
     with open(path, "rb") as f:
         r = make_reader(f)

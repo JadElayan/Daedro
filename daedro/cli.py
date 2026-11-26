@@ -115,7 +115,7 @@ def _case(a) -> int:
     if a.case_cmd == "new":
         cond = {k: v for k, v in (("friction", a.friction), ("mass", a.mass), ("half_size", a.half_size),
                                   ("seed", a.seed)) if v is not None}
-        d = cm.new_case(a.recording, a.cases_dir, a.id, a.title, cond or None)
+        d = cm.new_case(a.recording, a.cases_dir, a.id, a.title, cond or None, a.topics)
         cm.render_library(a.cases_dir)
         c = json.loads((d / "case.json").read_text())
         print(f"case {c['id']}: {c['incident']['description']} (at {c['incident']['t']} s) -> {d}/index.html")
@@ -139,7 +139,7 @@ def _record(a) -> int:
     ctrl, suite = cfgmod.load(a.config)
     seed, params = sample(suite.method, suite.n, suite.seed, suite.space())[a.scenario]
     path, r = record_episode(params, seed, ctrl, a.out, cell=a.cell, software_version=a.software,
-                             gripper=a.gripper, part=a.part)
+                             gripper=a.gripper, part=a.part, fmt=a.format)
     print(f"{path} ({r['outcome']}); source marked 'simulation (example)'")
     return 0
 
@@ -231,6 +231,7 @@ def main(argv=None) -> int:
     for k in ("friction", "mass", "half-size"):
         c1.add_argument(f"--{k}", type=float, help="override if the recording lacks it")
     c1.add_argument("--seed", type=int)
+    c1.add_argument("--topics", help="TOML topic map for ROS 2 bags (see daedro/ros2.py)")
     c2 = csub.add_parser("reproduce", help="does simulation recreate the incident?")
     c2.add_argument("--case", required=True); c2.add_argument("--config", required=True)
     c2.add_argument("--n", type=int, default=20); c2.add_argument("--workers", type=int, default=4)
@@ -248,6 +249,7 @@ def main(argv=None) -> int:
     rc_.add_argument("--out", required=True); rc_.add_argument("--cell", default="example cell")
     rc_.add_argument("--software", default="unknown"); rc_.add_argument("--gripper", default="")
     rc_.add_argument("--part", default="")
+    rc_.add_argument("--format", choices=["json", "ros2"], default="json", help="ros2 writes a CDR-encoded ROS 2 bag")
     rc_.set_defaults(fn=_record)
     pv = sub.add_parser("preview", help="film one scenario: base and head side by side")
     pv.add_argument("--base", required=True); pv.add_argument("--head", required=True)

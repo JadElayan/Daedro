@@ -106,9 +106,9 @@ def _timeline_svg(rec, inc: Incident, half: float) -> str:
 
 
 def new_case(recording: str | Path, cases_dir: str | Path, case_id: str | None = None, title: str | None = None,
-             conditions: dict | None = None) -> Path:
+             conditions: dict | None = None, topic_map: str | Path | None = None) -> Path:
     """Create a case from a recording. `conditions` overrides the part properties read from metadata."""
-    rec = read_mcap(recording)
+    rec = read_mcap(recording, topic_map)
     md = rec.metadata
     inc = find_incident(rec)
     raw = Path(recording).read_bytes()
